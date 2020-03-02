@@ -8,22 +8,19 @@
 #include <iostream>
 #include <string>
 #include <array>
-#include <vector>
 #include <fstream>
 #include <sstream>
 
 Barrier b;
 std::mutex coutMutex;
-std::mutex trainCountMutex;
-std::mutex trainCompletionMutex;
 
 int step;
 
 void read(std::string filename, 
           int &numberOfTrains, 
           int &numberOfStations, 
-          std::vector<std::vector<int>> & trainRoutes, 
-          std::vector<int> & trainStops){
+          int ** trainRoutes,
+          int * trainRouteSize){
 
     std::ifstream inFile(filename);
     std::string line;
@@ -39,36 +36,40 @@ void read(std::string filename,
     lineStreamFirst >> value;
     numberOfStations = value;
 
-    while(std::getline(inFile, line)) {
+    trainRoutes = new int * [numberOfTrains];
+    trainRouteSize = new int [numberOfTrains];
+
+    int train = 0;
+
+    for(auto i = 0 ; i < numberOfTrains ; i++) {
+        std::getline(inFile, line);
         std::stringstream lineStream(line);
 
         lineStream >> value;
-        trainStops.push_back(value);
+        trainRoutes[train] = new int [value];
+        trainRouteSize[train] = value;
 
-        std::vector<int> train;
+        int stop = 0;
 
-        while(lineStream >> value)
-            train.push_back(value);
-        
-        trainRoutes.push_back(train);
+        while(lineStream >> value){
+            trainRoutes[train][stop] = value;
+            stop++;
+        }
+        train++;
     }
+    
 }
 
 
 //numberOfTrains is by reference to manage the barrier with trains completing their journey
-void work(int assignment, int &numberOfTrains, std::vector<int> trainRoute)
+void work(int assignment, int numberOfTrains)
 {
-    int routeLength = trainRoute.size();
+
     bool routeCompleted = false;
 
     coutMutex.lock();
-    std::cout << "Train " << (assignment+65) << " waiting to start\n";
+    std::cout << "Train " << (char)(assignment+65) << " waiting to start\n";
     coutMutex.unlock();
-
-    b.barrier(numberOfTrains);
-
-    int currentStation = 0;
-    int nextStation = 0;
 
     // while(!routeCompleted) {
     //     //get path
@@ -81,59 +82,89 @@ void work(int assignment, int &numberOfTrains, std::vector<int> trainRoute)
     // }
 }
 
+void cleanUpArray(int ** trainRoutes, int numberOfTrains) {
+    for (int i = 0 ; i < numberOfTrains ; i++){
+		delete [] trainRoutes[i];
+    }
+	delete [] trainRoutes;
+    
+ }
+
 void cleanUpThreads(std::thread** t, int numberOfTrains){
     for (int i = 0 ; i < numberOfTrains ; i++)
-		delete t[i];
+		delete [] t[i];
 	delete [] t;
 }
 
-void cleanUpArray(std::mutex ** trackLocks, int numberOfTrains) {
+void cleanUpMutexArray(std::mutex ** trackLocks, int numberOfTrains) {
     for (auto i = 0 ; i < numberOfTrains ; i++)
-        delete trackLocks[i];
-    delete trackLocks;
+        delete [] trackLocks[i];
+    delete [] trackLocks;
 }
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) { 
     if(argc < 2)
         std::cout << "Incorrect number of parameters!\n";
     else 
     {
-        int numberOfTrains, numberOfStations;
-        int buildTrains;
-        
-        std::vector<std::vector<int>> trainRoutes;
-        std::vector<int> trainStops;
-
-        read(argv[1], numberOfTrains, numberOfStations, trainRoutes, trainStops);
-
+        int numberOfTrains, numberOfStations, buildTrains;
+        int ** trainRoutes;
+        int * trainRouteSize;
         step = 0;
+
+        read(argv[1], numberOfTrains, numberOfStations, trainRoutes, trainRouteSize);
+
+        for(auto i = 0 ; i < numberOfTrains ; i++) {
+            for(auto j = 0 ; j < trainRouteSize[i] ; j++){
+                std::cout << trainRoutes[i][j] << ' ';
+            }
+            std::cout << std::endl;
+        }
+
+
+        //buildTrains is a non-changing of initial total
+        //used to clean up memory later on
         buildTrains = numberOfTrains;
 
-        //Build mutex array
-        std::mutex ** trackLocks;
-        trackLocks = new std::mutex * [buildTrains];
-        for(auto i = 0 ; i < buildTrains ; i++)
-            trackLocks[i] = new std::mutex[buildTrains];
+        
+
+        //Build 2D mutex array
+        std::mutex ** trackLocks = new std::mutex *[numberOfTrains];
+        for (int i = 0 ; i < buildTrains ; i++) 
+            trackLocks[i] = new std::mutex;
+
+        
         
         //Spawn the threads
         std::thread** t = new std::thread*[buildTrains];
         for (int i = 0 ; i < buildTrains ; i++)
-		    t[i] = new std::thread(work, i, numberOfTrains, trainRoutes[i]);
+		    t[i] = new std::thread(work, i, numberOfTrains);
 
         
         //Wait for all threads to finish
-        for (int i=0 ; i<numberOfTrains ; i++){
+        for (int i = 0 ; i < buildTrains ; i++){
             coutMutex.lock();
-            std::cout << "thread complete " << i << "\n";
+            std::cout << "Train complete " << (char)(i+65) << "\n";
             coutMutex.unlock();
 		// Wait until the i-th thread completes. It will complete
 		// when the given function ("work" in this case) exits.
 		    t[i]->join();
         }
 
-        cleanUpArray(trackLocks, buildTrains);
-        cleanUpThreads(t, numberOfTrains);
+        for (int i = 0 ; i < numberOfTrains ; i++){
+            std::cout << trainRoutes[i] << '\n';
+		    delete [] trainRoutes[i];
+        }
+	    delete [] trainRoutes;
+
+        // for (int i = 0 ; i < numberOfTrains ; i++)
+		//     delete [] t[i];
+	    // delete [] t;
+
+        // for (int i = 0 ; i < numberOfTrains ; i++)
+		//     delete [] trackLocks[i];
+	    // delete [] trackLocks;
     }
   return(0);
 }
