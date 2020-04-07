@@ -175,11 +175,18 @@ void do_rank_0_work(int communicatorSize, int numberArgs, int * colArray, int op
 		std::cout << array[0][i] << " = " << resultsArray[i] << '\n';
 		
 	}
+
+	delete [] resultsArray;
+	delete [] doubleArray;
+	for(int i = 0 ; i < rowSize ; i++) {
+		delete [] array[i];
+	}
+	delete array;
+	delete [] colArray;
 }
 
 
 void do_rank_i_work(int rank, int numberArgs, int operation) {
-	double * oneColumn   = new double[NUMBER_OF_CITIES];
 	double * doubleArray = new double[NUMBER_OF_CITIES * numberArgs];
 
 	MPI_Bcast(doubleArray, NUMBER_OF_CITIES * numberArgs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -197,15 +204,17 @@ void do_rank_i_work(int rank, int numberArgs, int operation) {
 
 
 	MPI_Gather(&result, 1, MPI_DOUBLE, nullptr, 0, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	delete [] doubleArray;
 }
 
 void do_rank_0_workS(int communicatorSize, int numberArgs, int column, int operation, double compare) {
 	std::vector<std::vector<std::string>> dataStorage;
-	std::string * array;
+	std::string * array, * states, * cities;
 	read(FILENAME, dataStorage);
 	//convert to an array because MPI does not handle vectors well
 	//will hopefully have time to fix this later
 	array = new std::string[dataStorage.size()];
+
 	int rowSize = dataStorage.size();
 	int colSize = dataStorage[0].size();
 
@@ -233,85 +242,17 @@ void do_rank_0_workS(int communicatorSize, int numberArgs, int column, int opera
 	double max = reducedArray[0];
 	double countLT = 0, countGT = 0;
 
-	int index;
+	int indexMax = 0, indexMin = 0;
 
 	for(int i = 0 ; i < sizePerProcess ; i++) {
-		if(operation == 0)
-			if(reducedArray[i] > max){
-				max = reducedArray[i];
-				index = i;
-			}
-		else if(operation == 1)
-			if(reducedArray[i] < min){
-				min = reducedArray[i];
-				index = i;
-			}
-		else if(operation == 2)
-			result += reducedArray[i];
-		else if(operation == 3)
-			if(reducedArray[i] > compare)
-				countGT++;
-		else if(operation == 4)
-			if(reducedArray[i] < compare)
-				countLT++;
-	}
-
-	if(operation == 0)
-		MPI_Reduce(&max, &globalResult, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-	else if(operation == 1)
-		MPI_Reduce(&min, &globalResult, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-	else if(operation == 2)
-		MPI_Reduce(&result, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	else if(operation == 3)
-		MPI_Reduce(&countGT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	else if(operation == 4)
-		MPI_Reduce(&countLT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-
-	// int * resultsArray = new int[communicatorSize];
-	// resultsArray[0] = index;
-	// MPI_Gather(MPI_IN_PLACE, 0, MPI_DOUBLE, resultsArray, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	// //Gather the index for Max/Min
-	// MPI_Gather(&index, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-
-
-	if(operation == 0)
-		std::cout << ", " <<  array[0] << " = " << globalResult << '\n';
-	else if(operation == 1)
-		std::cout << ", " <<  array[0] << " = " << globalResult << '\n';
-	else if(operation == 2){
-		globalResult /= NUMBER_OF_CITIES;
-		std::cout << "Average " <<  array[0] << " = " << globalResult << '\n';
-	}
-	else if(operation == 3)
-		std::cout << "Number cities with " << array[0] << " gt " << compare << " = " << globalResult << '\n';
-	else if(operation == 4)
-		std::cout << "Number cities with " << array[0] << " lt " << compare << " = " << globalResult << '\n';
-
-}
-
-
-void do_rank_i_workS(int communicatorSize, int rank, int numberArgs, int operation, double compare) {
-	int sizePerProcess = NUMBER_OF_CITIES / communicatorSize;
-	double * reducedArray = new double[sizePerProcess];
-
-	MPI_Scatter(nullptr, sizePerProcess, MPI_DOUBLE, reducedArray, sizePerProcess, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	double globalResult;
-
-	//calculate the local value
-	double result = 0;
-	double min = reducedArray[0];
-	double max = reducedArray[0];
-	double countLT = 0, countGT = 0;
-
-
-	for(int i = 0 ; i < sizePerProcess ; i++) {
-		if(reducedArray[i] > max)
+		if(reducedArray[i] > max){
 			max = reducedArray[i];
-		if(reducedArray[i] < min)
+			indexMax = i;
+		}
+		if(reducedArray[i] < min){
 			min = reducedArray[i];
+			indexMin = i;
+		}
 		result += reducedArray[i];
 		if(reducedArray[i] > compare)
 			countGT++;
@@ -329,7 +270,70 @@ void do_rank_i_workS(int communicatorSize, int rank, int numberArgs, int operati
 		MPI_Reduce(&countGT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	else if(operation == 4)
 		MPI_Reduce(&countLT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	
+
+	if(operation == 0)
+		std::cout << array[0] << " = " << globalResult << '\n';
+	else if(operation == 1)
+		std::cout << array[0] << " = " << globalResult << '\n';
+	else if(operation == 2){
+		globalResult /= NUMBER_OF_CITIES;
+		std::cout << "Average " <<  array[0] << " = " << globalResult << '\n';
+	}
+	else if(operation == 3)
+		std::cout << "Number cities with " << array[0] << " gt " << compare << " = " << globalResult << '\n';
+	else if(operation == 4)
+		std::cout << "Number cities with " << array[0] << " lt " << compare << " = " << globalResult << '\n';
+
+	delete [] array;
+	delete [] reducedArray;
+	delete [] doubleArray;
+}
+
+
+void do_rank_i_workS(int communicatorSize, int rank, int numberArgs, int operation, double compare) {
+	int sizePerProcess = NUMBER_OF_CITIES / communicatorSize;
+	double * reducedArray = new double[sizePerProcess];
+
+	MPI_Scatter(nullptr, sizePerProcess, MPI_DOUBLE, reducedArray, sizePerProcess, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+	double globalResult;
+
+	//calculate the local value
+	double result = 0;
+	double min = reducedArray[0];
+	double max = reducedArray[0];
+	double countLT = 0, countGT = 0;
+
+	int indexMax = 0, indexMin = 0;
+
+	for(int i = 0 ; i < sizePerProcess ; i++) {
+		if(reducedArray[i] > max){
+			max = reducedArray[i];
+			indexMax = i;
+		}
+		if(reducedArray[i] < min){
+			min = reducedArray[i];
+			indexMin = i;
+		}
+		result += reducedArray[i];
+		if(reducedArray[i] > compare)
+			countGT++;
+		if(reducedArray[i] < compare)
+			countLT++;
+	}
+
+	if(operation == 0)
+		MPI_Reduce(&max, &globalResult, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	else if(operation == 1)
+		MPI_Reduce(&min, &globalResult, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+	else if(operation == 2)
+		MPI_Reduce(&result, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	else if(operation == 3)
+		MPI_Reduce(&countGT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	else if(operation == 4)
+		MPI_Reduce(&countLT, &globalResult, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	delete [] reducedArray;
 }
 
 void bProcess(int rank, int communicatorSize, int argc, char **argv){
