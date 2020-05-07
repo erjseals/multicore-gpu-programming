@@ -475,16 +475,14 @@ int main(int argc, char* argv[])
 
 	//*************************
 	//test results
-	std::cout 	<< nRows << " " << nCols << '\n' 
-				<< MaxIterations << '\n' << MaxLengthSquared << '\n'
-				<< realMin << ' ' << realMax << '\n'
-				<< imagMin << ' ' << imagMax << '\n'
-				<< JReal   << ' ' << JImag   << '\n'
-				<< COLOR_1[0] << ' ' << COLOR_1[1] << ' ' << COLOR_1[2] << '\n'
-				<< COLOR_2[0] << ' ' << COLOR_2[1] << ' ' << COLOR_2[2] << '\n'
-				<< COLOR_3[0] << ' ' << COLOR_3[1] << ' ' << COLOR_3[2] << '\n';
-
-	
+	// std::cout 	<< nRows << " " << nCols << '\n' 
+	// 			<< MaxIterations << '\n' << MaxLengthSquared << '\n'
+	// 			<< realMin << ' ' << realMax << '\n'
+	// 			<< imagMin << ' ' << imagMax << '\n'
+	// 			<< JReal   << ' ' << JImag   << '\n'
+	// 			<< COLOR_1[0] << ' ' << COLOR_1[1] << ' ' << COLOR_1[2] << '\n'
+	// 			<< COLOR_2[0] << ' ' << COLOR_2[1] << ' ' << COLOR_2[2] << '\n'
+	// 			<< COLOR_3[0] << ' ' << COLOR_3[1] << ' ' << COLOR_3[2] << '\n';
 
 	cl_device_type devType = CL_DEVICE_TYPE_DEFAULT;
 	size_t N = 20;
@@ -520,24 +518,22 @@ int main(int argc, char* argv[])
 		std::cerr << "Usage: " << argv[0] << " numRows numCols R G B outputImageFile\n";
 	else
 	{
-		int numRows = atoi(argv[1]);
-		int numCols = atoi(argv[2]);
-		double RGB[3] = { atof(argv[3]), atof(argv[4]), atof(argv[5]) };
+		double RGB[3] = { COLOR_1[0], COLOR_1[1], COLOR_1[2] };
 		int numChannels = 3; // R, G, B
-		ImageWriter* iw = ImageWriter::create(argv[6], numCols, numRows, numChannels);
+		ImageWriter* iw = ImageWriter::create(argv[3], nCols, nRows, numChannels);
 		if (iw == nullptr)
 			exit(1);
 
 		// We would launch a GPU kernel to get the data to be written; let's just
 		// use a placeholder here:
-		unsigned char* image = new unsigned char[numRows * numCols * numChannels];
-		for (int r=0 ; r<numRows ; r++)
+		unsigned char* image = new unsigned char[nRows * nCols * numChannels];
+		for (int r=0 ; r<nRows ; r++)
 		{
-			for (int c=0 ; c<numCols ; c++)
+			for (int c=0 ; c<nCols ; c++)
 			{
 				for (int chan=0 ; chan<numChannels ; chan++)
 				{
-					int loc = r*numCols*numChannels + c*numChannels + chan;
+					int loc = r*nCols*numChannels + c*numChannels + chan;
 					// In your GPU code, you will either have the kernel return a buffer of unsigned char,
 					// or return a float or double buffer and do the following:
 					unsigned char pixelVal = static_cast<unsigned char>(RGB[chan]*255.0 + 0.5);
