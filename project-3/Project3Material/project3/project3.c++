@@ -469,12 +469,6 @@ int main(int argc, char* argv[])
 
 	//*************************
 	//test results
-	int nRows, nCols, MaxIterations, MaxLengthSquared;
-	double realMin, realMax, imagMin, imagMax;
-	double JReal, JImag;
-	double COLOR_1 = {0.0, 0.0, 0.0};
-	double COLOR_2 = {0.0, 0.0, 0.0};
-	double COLOR_3 = {0.0, 0.0, 0.0};
 	std::cout 	<< nRows << " " << nCols << '\n' 
 				<< MaxIterations << '\n' << MaxLengthSquared << '\n'
 				<< realMin << ' ' << realMax << '\n'

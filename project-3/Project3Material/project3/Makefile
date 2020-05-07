@@ -24,3 +24,7 @@ project3.o: project3.c++
 
 readSource.o: readSource.c++
 	g++ -fPIC $(C_FLAGS) readSource.c++
+
+clean:
+	rm *.o
+	rm project3
