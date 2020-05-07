@@ -17,7 +17,7 @@ CFLAGS = -g -c $(INC)
 LIB = ../lib/libCOGLImageWriter.so
 
 $(PROG): $(PROG).o $(LIB)
-	$(LINK) -g -o $(PROG) $(PROG).o $(LIB)
+	$(LINK) -g -o $(PROG) $(PROG).o $(OPENCL_LIB) $(LIB)
 
 ../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
 	(cd ../ImageWriter; make)
