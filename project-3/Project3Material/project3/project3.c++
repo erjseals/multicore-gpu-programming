@@ -3,6 +3,7 @@
 #include <string>
 #include <string.h>
 #include <math.h>
+#include <tuple>
 
 // OpenCL includes
 #ifdef __APPLE__
@@ -354,6 +355,18 @@ void print(std::string label, double* M, size_t N)
 
 int main(int argc, char* argv[])
 {
+	if(argc < 4)
+		std::cerr << "Usage: " << argv[0] << " M/R params.txt imageFileOut.png\n";
+
+	int nRows, nCols, MaxIterations, MaxLengthSquared;
+	double realMin, realMax, imagMin, imagMax;
+	double JReal, JImag;
+	auto COLOR_1 = std::make_tuple(0.0, 0.0, 0.0);
+	auto COLOR_2 = std::make_tuple(0.0, 0.0, 0.0);
+	auto COLOR_3 = std::make_tuple(0.0, 0.0, 0.0);
+
+	
+
 	cl_device_type devType = CL_DEVICE_TYPE_DEFAULT;
 	size_t N = 20;
 	bool doPrint = true;
