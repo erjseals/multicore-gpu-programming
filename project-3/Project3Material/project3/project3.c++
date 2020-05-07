@@ -186,7 +186,7 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 	return possibleDevs[devIndex];
 }
 
-void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t N)
+void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 {
 	//------------------------------------------------------------------------
 	// Create a context for some or all of the devices on the platform
@@ -209,17 +209,9 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	// Create device buffers associated with the context
 	//----------------------------------------------------------
 
-	size_t datasize = N * N * sizeof(double);
+	size_t datasize = nRows * nCols * sizeof(double);
 
-	cl_mem d_A = clCreateBuffer( // Input array on the device
-		context, CL_MEM_READ_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-A", status, true);
-
-	cl_mem d_B = clCreateBuffer( // Input array on the device
-		context, CL_MEM_READ_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-B", status, true);
-
-	cl_mem d_C = clCreateBuffer( // Output array on the device
+	cl_mem d_ret = clCreateBuffer( // Output array on the device
 		context, CL_MEM_WRITE_ONLY, datasize, nullptr, &status);
 	checkStatus("clCreateBuffer-C", status, true);
 
@@ -228,15 +220,15 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	//         write host data to the device buffers
 	//----------------------------------------------------- 
 
-	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_A, CL_FALSE, 0, datasize,                         
-		A, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-A", status, true);
+	// status = clEnqueueWriteBuffer(cmdQueue, 
+	// 	d_A, CL_FALSE, 0, datasize,                         
+	// 	A, 0, nullptr, nullptr);
+	// checkStatus("clEnqueueWriteBuffer-A", status, true);
 
-	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_B, CL_FALSE, 0, datasize,                                  
-		B, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-B", status, true);
+	// status = clEnqueueWriteBuffer(cmdQueue, 
+	// 	d_B, CL_FALSE, 0, datasize,                                  
+	// 	B, 0, nullptr, nullptr);
+	// checkStatus("clEnqueueWriteBuffer-B", status, true);
 
 	//-----------------------------------------------------
 	// Create, compile, and link the program
@@ -262,13 +254,11 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	// Set the kernel arguments
 	//----------------------------------------------------- 
 
-	status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_A);
+	status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_ret);
 	checkStatus("clSetKernelArg-A", status, true);
-	status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_B);
-	checkStatus("clSetKernelArg-B", status, true);
-	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_C);
-	checkStatus("clSetKernelArg-C", status, true);
-	status = clSetKernelArg(kernel, 3, sizeof(int), &N);
+	status = clSetKernelArg(kernel, 3, sizeof(int), &nRows);
+	checkStatus("clSetKernelArg-N", status, true);
+	status = clSetKernelArg(kernel, 3, sizeof(int), &nCols);
 	checkStatus("clSetKernelArg-N", status, true);
 
 	//-----------------------------------------------------
@@ -277,14 +267,18 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 
 	size_t localWorkSize[] = { 16, 16 };
 	size_t globalWorkSize[2];
-	// Global work size needs to be at least NxN, but it must
+	// Global work size needs to be at least nRowsxnCols, but it must
 	// also be a multiple of local size in each dimension:
-	for (int d=0 ; d<2 ; d++)
-	{
-		globalWorkSize[d] = N;
-		if (globalWorkSize[d]%localWorkSize[d] != 0)
-			globalWorkSize[d] = ((N / localWorkSize[d]) + 1) * localWorkSize[d];
-	}
+
+	//maybe really not the best way to do this, will fix later if time
+
+	globalWorkSize[0] = nRows;
+	if (globalWorkSize[0]%localWorkSize[0] != 0)
+		globalWorkSize[0] = ((nRows / localWorkSize[0]) + 1) * localWorkSize[0];
+
+	globalWorkSize[1] = nCols;
+	if (globalWorkSize[1]%localWorkSize[1] != 0)
+		globalWorkSize[1] = ((nCols / localWorkSize[1]) + 1) * localWorkSize[1];
 
 	//-----------------------------------------------------
 	// Enqueue the kernel for execution
@@ -302,8 +296,8 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	//----------------------------------------------------- 
 
 	clEnqueueReadBuffer(cmdQueue, 
-		d_C, CL_TRUE, 0, datasize, 
-		C, 0, nullptr, nullptr);
+		d_ret, CL_TRUE, 0, datasize, 
+		ret, 0, nullptr, nullptr);
 
 	//-----------------------------------------------------
 	// Release OpenCL resources
@@ -323,26 +317,15 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	delete [] devices;
 }
 
-double* do_project3(cl_device_id dev, size_t N)
+double* do_project3(cl_device_id dev, int nRows, int nCols)
 {
-	double* X = new double[N*N];
-	double* Y = new double[N*N];
-	double* Z = new double[N*N];
-	for (int row=0 ; row<N ; row++)
-		for (int col=0 ; col<N ; col++)
-		{
-			// make X be 2*I
-			X[row*N + col] = (row == col) ? 2.0 : 0.0;
-			Y[row*N + col] = 17.5;
-		}
-	doTheKernelLaunch(dev, X, Y, Z, N);
+	double* ret = new double[nRows*nCols];
+	doTheKernelLaunch(dev, ret, nRows, nCols);
 
-	delete [] X;
-	delete [] Y;
-	return Z;
+	return ret;
 }
 
-void print(std::string label, double* M, size_t N)
+void print(std::string label, double* M, int nRows, int nCols)
 {
 	std::cout << label << ":\n";
 	for (int row=0 ; row<N ; row++)
@@ -486,7 +469,7 @@ int main(int argc, char* argv[])
 
 	cl_device_type devType = CL_DEVICE_TYPE_DEFAULT;
 	size_t N = 20;
-	bool doPrint = true;
+	bool doPrint = false;
 
 	for (int i=1 ; i<argc ; i++)
 	{
@@ -507,9 +490,9 @@ int main(int argc, char* argv[])
 	int devIndex = typicalOpenCLProlog(devType);
 	if (devIndex >= 0)
 	{
-		double* C = do_project3(devices[devIndex], N);
+		double* C = do_project3(devices[devIndex], nRows, nCols);
 		if (doPrint)
-			print("The product is", C, N);
+			print("The product is", C, nRows, nCols);
 		delete [] C;
 	}
 
