@@ -8,13 +8,19 @@ OPENCL_LIB = -lOpenCL
 
 C_FLAGS = -c -g -std=c++11 $(CF_EXTRA)
 
+LIB = ../lib/libCOGLImageWriter.so
+INC = -I../Packed3DArray -I../ImageWriter
+
 OBJS = project3.o readSource.o
 
-project3: $(OBJS)
-	g++ -g $(OBJS) -o project3 $(OPENCL_LIB)
+project3: $(OBJS) $(LIB)
+	g++ -fPIC -g $(OBJS) -o project3 $(OPENCL_LIB) $(LIB)
+
+../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
+	(cd ../ImageWriter; make)
 
 project3.o: project3.c++
 	g++ $(C_FLAGS) project3.c++
 
 readSource.o: readSource.c++
-	g++ $(C_FLAGS) readSource.c++
+	g++ $(C_FLAGS) $(INC) readSource.c++
