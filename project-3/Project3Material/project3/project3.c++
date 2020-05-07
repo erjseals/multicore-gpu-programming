@@ -307,9 +307,7 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 	clReleaseKernel(kernel);
 	clReleaseProgram(program);
 	clReleaseCommandQueue(cmdQueue);
-	clReleaseMemObject(d_A);
-	clReleaseMemObject(d_B);
-	clReleaseMemObject(d_C);
+	clReleaseMemObject(d_ret);
 	clReleaseContext(context);
 
 	// Free host resources
@@ -328,11 +326,11 @@ double* do_project3(cl_device_id dev, int nRows, int nCols)
 void print(std::string label, double* M, int nRows, int nCols)
 {
 	std::cout << label << ":\n";
-	for (int row=0 ; row<N ; row++)
+	for (int row=0 ; row<nRows ; row++)
 	{
-		for (int col=0 ; col<N ; col++)
+		for (int col=0 ; col<nCols ; col++)
 		{
-			std::cout << M[row*N + col] << " ";
+			std::cout << M[row*nRows + col - 1] << " ";
 		}
 		std::cout << '\n';
 	}
