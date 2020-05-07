@@ -8,6 +8,6 @@ void project3(__global double* ret, int nRows, int nCols)
 	int row = get_global_id(1);
 	if ((row < nRows) && (col < nCols))
 	{
-		ret[row*nRows + col - 1] = row*nRows + col - 1;
+		ret[row*nRows + col - 1] = row*nRows + col;
 	}
 }

@@ -490,7 +490,7 @@ int main(int argc, char* argv[])
 	{
 		double* C = do_project3(devices[devIndex], nRows, nCols);
 		if (doPrint)
-			print("The product is", C, nRows, nCols);
+			print("The Array is", C, nRows, nCols);
 		delete [] C;
 	}
 
