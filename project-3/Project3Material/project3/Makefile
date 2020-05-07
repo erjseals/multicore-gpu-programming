@@ -15,10 +15,12 @@ INC = -I../Packed3DArray -I../ImageWriter
 CFLAGS = -g -c $(INC)
 C_FLAGS = -c -g -std=c++11 $(CF_EXTRA)
 
+OBJS = project3.o readSource.o $(LIB)
+
 LIB = ../lib/libCOGLImageWriter.so
 
 project3: project3.o readSource.o $(LIB)
-	$(LINK) -g -o project3 project3.o $(OPENCL_LIB) $(LIB)
+	$(LINK) -g $(OBJS) -o project3 $(OPENCL_LIB) $(LIB)
 
 ../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
 	(cd ../ImageWriter; make)
