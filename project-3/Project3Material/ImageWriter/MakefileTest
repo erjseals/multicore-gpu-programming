@@ -1,0 +1,15 @@
+# PROG = testWriter2
+
+CPP = g++ -fPIC
+LINK = g++ -fPIC
+
+INC = -I../Packed3DArray
+CFLAGS = -g -c $(INC)
+
+LIB = ../lib/libCOGLImageWriter.so
+
+$(PROG): $(PROG).o
+	$(LINK) -g -o $(PROG) $(PROG).o $(LIB)
+
+$(PROG).o: $(PROG).c++
+	$(CPP) $(CFLAGS) $(PROG).c++
