@@ -361,9 +361,128 @@ int main(int argc, char* argv[])
 	int nRows, nCols, MaxIterations, MaxLengthSquared;
 	double realMin, realMax, imagMin, imagMax;
 	double JReal, JImag;
-	auto COLOR_1 = std::make_tuple(0.0, 0.0, 0.0);
-	auto COLOR_2 = std::make_tuple(0.0, 0.0, 0.0);
-	auto COLOR_3 = std::make_tuple(0.0, 0.0, 0.0);
+	double COLOR_1 = {0.0, 0.0, 0.0};
+	double COLOR_2 = {0.0, 0.0, 0.0};
+	double COLOR_3 = {0.0, 0.0, 0.0};
+
+	//**********************************************
+	//Read the file
+	std::ifstream inFile(argv[2]);
+	std::string line;
+	int value;
+	double data;
+
+	//We know exactly the format of the file
+
+	//line 1
+	std::getline(inFile, line);
+	std::stringstream lineStream(line);
+
+	lineStream >> value;
+	nRows = value;
+
+	lineStream >> value;
+	nCols = value;
+
+	//line 2
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> value;
+	MaxIterations = value;
+
+	//line 3
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> value;
+	MaxLengthSquared = value;
+
+	//line 4
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	realMin = data;
+
+	lineStream >> data;
+	realMax = data;
+
+	//line 5
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	imagMin = data;
+
+	lineStream >> data;
+	imagMax = data;
+
+	//line 6
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	JReal = data;
+
+	lineStream >> data;
+	JImag = data;
+
+	//line 7
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	COLOR_1[0] = data;
+
+	lineStream >> data;
+	COLOR_1[1] = data;
+
+	lineStream >> data;
+	COLOR_1[2] = data;
+
+	//line 8
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	COLOR_2[0] = data;
+
+	lineStream >> data;
+	COLOR_2[1] = data;
+
+	lineStream >> data;
+	COLOR_2[2] = data;
+
+	//line 9
+	std::getline(inFile, line);
+	lineStream(line);
+
+	lineStream >> data;
+	COLOR_3[0] = data;
+
+	lineStream >> data;
+	COLOR_3[1] = data;
+
+	lineStream >> data;
+	COLOR_3[2] = data;
+
+	//*************************
+	//test results
+	int nRows, nCols, MaxIterations, MaxLengthSquared;
+	double realMin, realMax, imagMin, imagMax;
+	double JReal, JImag;
+	double COLOR_1 = {0.0, 0.0, 0.0};
+	double COLOR_2 = {0.0, 0.0, 0.0};
+	double COLOR_3 = {0.0, 0.0, 0.0};
+	std::cout 	<< nRows << " " << nCols << '\n' 
+				<< MaxIterations << '\n' << MaxLengthSquared << '\n'
+				<< realMin << ' ' << realMax << '\n'
+				<< imagMin << ' ' << imagMax << '\n'
+				<< JReal   << ' ' << JImag   << '\n'
+				<< COLOR_1[0] << ' ' << COLOR_1[1] << ' ' << COLOR_1[2] << '\n'
+				<< COLOR_2[0] << ' ' << COLOR_2[1] << ' ' << COLOR_2[2] << '\n'
+				<< COLOR_3[0] << ' ' << COLOR_3[1] << ' ' << COLOR_3[2] << '\n';
 
 	
 
