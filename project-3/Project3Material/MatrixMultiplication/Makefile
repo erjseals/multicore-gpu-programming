@@ -20,7 +20,7 @@ project3: $(OBJS) $(LIB)
 	(cd ../ImageWriter; make)
 
 project3.o: project3.c++
-	g++ -fPIC $(C_FLAGS) project3.c++
+	g++ -fPIC $(C_FLAGS) $(INC) project3.c++
 
 readSource.o: readSource.c++
-	g++ -fPIC $(C_FLAGS) $(INC) readSource.c++
+	g++ -fPIC $(C_FLAGS) readSource.c++
