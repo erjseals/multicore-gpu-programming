@@ -1,18 +1,29 @@
-PROG = project3
+# uncomment the following lines if running on linux
+CF_EXTRA = -Wno-deprecated-declarations
+OPENCL_LIB = -lOpenCL
+#uncomment the following lines if running on Mac OS
+# CF_EXTRA = -DCL_SILENCE_DEPRECATION
+# OPENCL_LIB = -framework OpenCL
+#end: linux versus Mac OS
 
-CPP = g++ -fPIC -std=c++11
 LINK = g++ -fPIC
 
 INC = -I../Packed3DArray -I../ImageWriter
-CFLAGS = -g -c $(INC)
 
 LIB = ../lib/libCOGLImageWriter.so
 
-$(PROG): $(PROG).o $(LIB)
-	$(LINK) -g -o $(PROG) $(PROG).o $(LIB)
+C_FLAGS = -c -g -std=c++11 $(CF_EXTRA)
+
+OBJS = project3.o readSource.o
+
+project3: $(OBJS) $(LIB)
+	$(LINK) -g -o $(OBJS) project3 $(LIB) $(OPENCL_LIB)
 
 ../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
 	(cd ../ImageWriter; make)
 
-$(PROG).o: $(PROG).c++
-	$(CPP) $(CFLAGS) $(PROG).c++
+project3.o: project3.c++
+	g++ $(C_FLAGS) project3.c++
+
+readSource.o: readSource.c++
+	g++ $(C_FLAGS) readSource.c++
