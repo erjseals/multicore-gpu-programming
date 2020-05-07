@@ -1,6 +1,3 @@
-// This program uses OpenCL to multiply two double precision matrices:
-// C = A * B
-
 // System includes
 #include <iostream>
 #include <string>
@@ -240,7 +237,7 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	// Create, compile, and link the program
 	//----------------------------------------------------- 
 
-	const char* programSource[] = { readSource("matrixMultiplyV1.cl") };
+	const char* programSource[] = { readSource("project3.cl") };
 	cl_program program = clCreateProgramWithSource(context, 
 		1, programSource, nullptr, &status);
 	checkStatus("clCreateProgramWithSource", status, true);
@@ -254,7 +251,7 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	// Create a kernel using a "__kernel" function in the ".cl" file
 	//----------------------------------------------------------------------
 
-	cl_kernel kernel = clCreateKernel(program, "matrixMultiply", &status);
+	cl_kernel kernel = clCreateKernel(program, "project3", &status);
 
 	//-----------------------------------------------------
 	// Set the kernel arguments
@@ -321,7 +318,7 @@ void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t
 	delete [] devices;
 }
 
-double* do_MatrixMultiply(cl_device_id dev, size_t N)
+double* do_project3(cl_device_id dev, size_t N)
 {
 	double* X = new double[N*N];
 	double* Y = new double[N*N];
@@ -378,7 +375,7 @@ int main(int argc, char* argv[])
 	int devIndex = typicalOpenCLProlog(devType);
 	if (devIndex >= 0)
 	{
-		double* C = do_MatrixMultiply(devices[devIndex], N);
+		double* C = do_project3(devices[devIndex], N);
 		if (doPrint)
 			print("The product is", C, N);
 		delete [] C;

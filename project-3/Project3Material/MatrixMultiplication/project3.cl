@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __kernel
-void matrixMultiply(__global double* A, __global double* B, __global double* C, int N)
+void project3(__global double* A, __global double* B, __global double* C, int N)
 {
 	// Get the work-item's unique ID
 	int col = get_global_id(0);

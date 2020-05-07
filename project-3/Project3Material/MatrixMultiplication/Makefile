@@ -8,13 +8,13 @@ OPENCL_LIB = -lOpenCL
 
 C_FLAGS = -c -g -std=c++11 $(CF_EXTRA)
 
-OBJS = matrixMultiplyV1.o readSource.o
+OBJS = project3.o readSource.o
 
-matrixMultiplyV1: $(OBJS)
-	g++ -g $(OBJS) -o matrixMultiplyV1 $(OPENCL_LIB)
+project3: $(OBJS)
+	g++ -g $(OBJS) -o project3 $(OPENCL_LIB)
 
-matrixMultiplyV1.o: matrixMultiplyV1.c++
-	g++ $(C_FLAGS) matrixMultiplyV1.c++
+project3.o: project3.c++
+	g++ $(C_FLAGS) project3.c++
 
 readSource.o: readSource.c++
 	g++ $(C_FLAGS) readSource.c++
