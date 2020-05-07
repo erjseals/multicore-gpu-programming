@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <tuple>
+#include <fstream>
 
 // OpenCL includes
 #ifdef __APPLE__
