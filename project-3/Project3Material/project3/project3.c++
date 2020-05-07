@@ -186,7 +186,8 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 	return possibleDevs[devIndex];
 }
 
-void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
+void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared,
+	double realMin, double realMax, double imagMin, double imagMax, double * COLOR_1, double * COLOR_2, double * COLOR_3)
 {
 	//------------------------------------------------------------------------
 	// Create a context for some or all of the devices on the platform
@@ -213,22 +214,39 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 
 	cl_mem d_ret = clCreateBuffer( // Output array on the device
 		context, CL_MEM_WRITE_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-C", status, true);
+	checkStatus("clCreateBuffer-ret", status, true);
+
+	cl_mem d_COLOR_1 = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+	checkStatus("clCreateBuffer-COLOR_1", status, true);
+
+	cl_mem d_COLOR_2 = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+	checkStatus("clCreateBuffer-COLOR_2", status, true);
+
+	cl_mem d_COLOR_3 = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+	checkStatus("clCreateBuffer-COLOR_3", status, true);
 
 	//-----------------------------------------------------
 	// Use the command queue to encode requests to
 	//         write host data to the device buffers
 	//----------------------------------------------------- 
 
-	// status = clEnqueueWriteBuffer(cmdQueue, 
-	// 	d_A, CL_FALSE, 0, datasize,                         
-	// 	A, 0, nullptr, nullptr);
-	// checkStatus("clEnqueueWriteBuffer-A", status, true);
+	status = clEnqueueWriteBuffer(cmdQueue, 
+		d_COLOR_1, CL_FALSE, 0, datasize,                         
+		COLOR_1, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-COLOR_1", status, true);
 
-	// status = clEnqueueWriteBuffer(cmdQueue, 
-	// 	d_B, CL_FALSE, 0, datasize,                                  
-	// 	B, 0, nullptr, nullptr);
-	// checkStatus("clEnqueueWriteBuffer-B", status, true);
+	status = clEnqueueWriteBuffer(cmdQueue, 
+		d_COLOR_2, CL_FALSE, 0, datasize,                         
+		COLOR_2, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
+
+	status = clEnqueueWriteBuffer(cmdQueue, 
+		d_COLOR_2, CL_FALSE, 0, datasize,                         
+		COLOR_2, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
 
 	//-----------------------------------------------------
 	// Create, compile, and link the program
@@ -252,15 +270,36 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 
 	//-----------------------------------------------------
 	// Set the kernel arguments
-	//----------------------------------------------------- 
+	//-----------------------------------------------------
 
 	status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_ret);
 	checkStatus("clSetKernelArg-A", status, true);
 	status = clSetKernelArg(kernel, 1, sizeof(int), &nRows);
-	checkStatus("clSetKernelArg-N", status, true);
+	checkStatus("clSetKernelArg-nRows", status, true);
 	status = clSetKernelArg(kernel, 2, sizeof(int), &nCols);
-	checkStatus("clSetKernelArg-N", status, true);
+	checkStatus("clSetKernelArg-nCols", status, true);
 
+	status = clSetKernelArg(kernel, 3, sizeof(int), &MaxIterations);
+	checkStatus("clSetKernelArg-MaxIterations", status, true);
+	status = clSetKernelArg(kernel, 4, sizeof(int), &MaxLengthSquared);
+	checkStatus("clSetKernelArg-MaxLengthSquared", status, true);
+
+	status = clSetKernelArg(kernel, 5, sizeof(double), &realMin);
+	checkStatus("clSetKernelArg-realMin", status, true);
+	status = clSetKernelArg(kernel, 6, sizeof(double), &realMax);
+	checkStatus("clSetKernelArg-realMax", status, true);
+	status = clSetKernelArg(kernel, 7, sizeof(double), &imagMin);
+	checkStatus("clSetKernelArg-imagMin", status, true);
+	status = clSetKernelArg(kernel, 8, sizeof(double), &imagMax);
+	checkStatus("clSetKernelArg-imagMax", status, true);
+
+	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_1);
+	checkStatus("clSetKernelArg-d_COLOR_1", status, true);
+	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_2);
+	checkStatus("clSetKernelArg-d_COLOR_2", status, true);	
+	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_3);
+	checkStatus("clSetKernelArg-d_COLOR_3", status, true);
+	
 	//-----------------------------------------------------
 	// Configure the work-item structure
 	//----------------------------------------------------- 
@@ -315,10 +354,12 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 	delete [] devices;
 }
 
-double* do_project3(cl_device_id dev, int nRows, int nCols)
+double* do_project3(cl_device_id dev, int nRows, int nCols, int MaxIterations, int MaxLengthSquared,
+	double realMin, double realMax, double imagMin, double imagMax, double * COLOR_1, double * COLOR_2, double * COLOR_3)
 {
 	double* ret = new double[nRows*nCols];
-	doTheKernelLaunch(dev, ret, nRows, nCols);
+	doTheKernelLaunch(dev, ret, nRows, nCols), MaxIterations, MaxLengthSquared, 
+								realMin, realMax, imagMin, imagMax, COLOR_1, COLOR_2, COLOR_3);
 
 	return ret;
 }
@@ -488,7 +529,8 @@ int main(int argc, char* argv[])
 	int devIndex = typicalOpenCLProlog(devType);
 	if (devIndex >= 0)
 	{
-		double* C = do_project3(devices[devIndex], nRows, nCols);
+		double* C = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, 
+								realMin, realMax, imagMin, imagMax, COLOR_1, COLOR_2, COLOR_3);
 		if (doPrint)
 			print("The Array is", C, nRows, nCols);
 		delete [] C;
