@@ -299,7 +299,7 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	checkStatus("clSetKernelArg-d_COLOR_2", status, true);	
 	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_3);
 	checkStatus("clSetKernelArg-d_COLOR_3", status, true);
-	
+
 	//-----------------------------------------------------
 	// Configure the work-item structure
 	//----------------------------------------------------- 
@@ -358,7 +358,7 @@ double* do_project3(cl_device_id dev, int nRows, int nCols, int MaxIterations, i
 	double realMin, double realMax, double imagMin, double imagMax, double * COLOR_1, double * COLOR_2, double * COLOR_3)
 {
 	double* ret = new double[nRows*nCols];
-	doTheKernelLaunch(dev, ret, nRows, nCols), MaxIterations, MaxLengthSquared, 
+	doTheKernelLaunch(dev, ret, nRows, nCols, MaxIterations, MaxLengthSquared, 
 								realMin, realMax, imagMin, imagMax, COLOR_1, COLOR_2, COLOR_3);
 
 	return ret;
