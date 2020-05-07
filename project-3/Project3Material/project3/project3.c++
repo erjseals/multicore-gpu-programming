@@ -409,6 +409,8 @@ int main(int argc, char* argv[])
 	// ...
 	delete [] Z;
 
+	std::cout << "failing here\n";
+
 	if (argc < 7)
 		std::cerr << "Usage: " << argv[0] << " numRows numCols R G B outputImageFile\n";
 	else
