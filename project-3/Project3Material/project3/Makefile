@@ -6,24 +6,24 @@ OPENCL_LIB = -lOpenCL
 # OPENCL_LIB = -framework OpenCL
 #end: linux versus Mac OS
 
+PROG = project3
+
+CPP = g++ -fPIC -std=c++11
 LINK = g++ -fPIC
 
 INC = -I../Packed3DArray -I../ImageWriter
+CFLAGS = -g -c $(INC)
 
 LIB = ../lib/libCOGLImageWriter.so
 
-C_FLAGS = -c -g -std=c++11 $(CF_EXTRA)
-
-OBJS = project3.o readSource.o
-
-project3: $(OBJS) $(LIB)
-	$(LINK) -g -o $(OBJS) project3 $(LIB) $(OPENCL_LIB)
+$(PROG): $(PROG).o $(LIB)
+	$(LINK) -g -o $(PROG) $(PROG).o $(LIB)
 
 ../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
 	(cd ../ImageWriter; make)
 
-project3.o: project3.c++
-	g++ $(C_FLAGS) project3.c++
+$(PROG).o: $(PROG).c++
+	$(CPP) $(CFLAGS) $(PROG).c++
 
 readSource.o: readSource.c++
-	g++ $(C_FLAGS) readSource.c++
+	g++ -c -g -std=c++11 $(CF_EXTRA) readSource.c++
