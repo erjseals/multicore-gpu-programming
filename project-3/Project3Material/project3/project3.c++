@@ -217,15 +217,15 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	checkStatus("clCreateBuffer-ret", status, true);
 
 	cl_mem d_COLOR_1 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
 	checkStatus("clCreateBuffer-COLOR_1", status, true);
 
 	cl_mem d_COLOR_2 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
 	checkStatus("clCreateBuffer-COLOR_2", status, true);
 
 	cl_mem d_COLOR_3 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3, nullptr, &status);
+		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
 	checkStatus("clCreateBuffer-COLOR_3", status, true);
 
 	//-----------------------------------------------------
@@ -234,17 +234,17 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	//----------------------------------------------------- 
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_1, CL_FALSE, 0, datasize,                         
+		d_COLOR_1, CL_FALSE, 0, 3*sizeof(double),                         
 		COLOR_1, 0, nullptr, nullptr);
 	checkStatus("clEnqueueWriteBuffer-COLOR_1", status, true);
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_2, CL_FALSE, 0, datasize,                         
+		d_COLOR_2, CL_FALSE, 0, 3*sizeof(double),                         
 		COLOR_2, 0, nullptr, nullptr);
 	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_2, CL_FALSE, 0, datasize,                         
+		d_COLOR_2, CL_FALSE, 0, 3*sizeof(double),                         
 		COLOR_2, 0, nullptr, nullptr);
 	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
 
