@@ -11,6 +11,8 @@
 #include <CL/opencl.h>
 #endif
 
+#include "ImageWriter.h"
+
 struct NameTable
 {
 	std::string name;
