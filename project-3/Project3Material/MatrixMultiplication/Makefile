@@ -14,7 +14,7 @@ INC = -I../Packed3DArray -I../ImageWriter
 OBJS = project3.o readSource.o
 
 project3: $(OBJS) $(LIB)
-	g++ -fPIC -g -o project3 $(OBJS) $(OPENCL_LIB) $(LIB)
+	g++ -fPIC -g -o project3 $(OBJS) $(LIB) $(OPENCL_LIB)
 
 ../lib/libCOGLImageWriter.so: ../ImageWriter/ImageWriter.h ../ImageWriter/ImageWriter.c++
 	(cd ../ImageWriter; make)
