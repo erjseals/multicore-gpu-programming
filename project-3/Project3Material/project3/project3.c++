@@ -330,7 +330,7 @@ void print(std::string label, double* M, int nRows, int nCols)
 	{
 		for (int col=0 ; col<nCols ; col++)
 		{
-			std::cout << M[row*nRows + col - 1] << " ";
+			std::cout << M[row*nCols + col] << " ";
 		}
 		std::cout << '\n';
 	}
