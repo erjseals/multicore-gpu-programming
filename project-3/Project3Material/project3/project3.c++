@@ -256,9 +256,9 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols)
 
 	status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_ret);
 	checkStatus("clSetKernelArg-A", status, true);
-	status = clSetKernelArg(kernel, 3, sizeof(int), &nRows);
+	status = clSetKernelArg(kernel, 1, sizeof(int), &nRows);
 	checkStatus("clSetKernelArg-N", status, true);
-	status = clSetKernelArg(kernel, 3, sizeof(int), &nCols);
+	status = clSetKernelArg(kernel, 2, sizeof(int), &nCols);
 	checkStatus("clSetKernelArg-N", status, true);
 
 	//-----------------------------------------------------
