@@ -1,6 +1,5 @@
+// System includes
 #include <iostream>
-#include <fstream>
-#include <cstdlib>
 #include <string>
 #include <string.h>
 #include <math.h>
@@ -12,7 +11,7 @@
 #include <CL/opencl.h>
 #endif
 
-#include "ImageWriter.h"\
+#include "ImageWriter.h"
 
 struct NameTable
 {
@@ -30,50 +29,6 @@ void checkStatus(std::string where, cl_int status, bool abortOnError)
 		std::cout << "Step " << where << ", status = " << status << '\n';
 	if ((status != 0) && abortOnError)
 		exit(1);
-}
-
-void lookAtDeviceCharacteristics(cl_device_id dev)
-{
-	cl_ulong gms;
-	clGetDeviceInfo(dev, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &gms, nullptr);
-	cl_ulong lms;
-	clGetDeviceInfo(dev, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &lms, nullptr);
-	size_t mwgs;
-	clGetDeviceInfo(dev, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &mwgs, nullptr);
-	cl_uint maxCUs;
-	clGetDeviceInfo(dev, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &maxCUs, nullptr);
-
-	size_t extLength;
-	clGetDeviceInfo(dev, CL_DEVICE_EXTENSIONS, 0, nullptr, &extLength);
-	char* extString = new char[extLength+1];
-	clGetDeviceInfo(dev, CL_DEVICE_EXTENSIONS, extLength+1, extString, nullptr);
-
-	std::cout << "Device global mem size:     " << gms << '\n';
-	std::cout << "Device local mem size:      " << lms << '\n';
-	std::cout << "Device max work group size: " << mwgs << '\n';
-	std::cout << "Device max compute units:   " << maxCUs << '\n';
-	std::cout << "Device extensions string:   " << extString << '\n';
-	std::cout << '\n';
-
-	delete [] extString;
-}
-
-void lookAtKernelCharacteristics(cl_kernel kernel, cl_device_id dev)
-{
-	cl_ulong lms = -1;
-	clGetKernelWorkGroupInfo(kernel, dev, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(cl_ulong), &lms, nullptr);
-	cl_ulong pms = -1;
-	clGetKernelWorkGroupInfo(kernel, dev, CL_KERNEL_PRIVATE_MEM_SIZE, sizeof(cl_ulong), &pms, nullptr);
-	size_t warpSize = -1;
-	clGetKernelWorkGroupInfo(kernel, dev, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &warpSize, nullptr);
-	size_t maxWorkGroupSize = -1;
-	clGetKernelWorkGroupInfo(kernel, dev, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, nullptr);
-
-	std::cout << "Kernel local memory size:   " << lms << '\n';
-	std::cout << "Kernel private memory size: " << pms << '\n';
-	std::cout << "Kernel warpSize:            " << warpSize << '\n';
-	std::cout << "Kernel max work group size: " << maxWorkGroupSize << '\n';
-	std::cout << '\n';
 }
 
 void reportPlatformInformation(const cl_platform_id& platformIn)
@@ -135,17 +90,12 @@ cl_device_id* devices = nullptr;
 // Return value is device index to use; -1 ==> no available devices
 int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 {
-	// ----------------------------------------------------
-	// Discover and initialize the platforms
-	// ----------------------------------------------------
+	//-----------------------------------------------------
+	// Discover and query the platforms
+	//-----------------------------------------------------
 
 	cl_int status = clGetPlatformIDs(0, nullptr, &numPlatforms);
 	checkStatus("clGetPlatformIDs-0", status, true);
-	if (numPlatforms <= 0)
-	{
-		std::cout << "No platforms!\n";
-		return -1;
-	}
 
 	platforms = new cl_platform_id[numPlatforms];
  
@@ -169,12 +119,12 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 	}
 	curPlatform = platforms[which];
 
-	std::cout << "Selected platform:\n";
+	std::cout << "Selected platform: ";
 	reportPlatformInformation(curPlatform);
 
-	// ------------------------------------------------------------------
-	// Discover and initialize the devices on a specific platform
-	// ------------------------------------------------------------------
+	//----------------------------------------------------------
+	// Discover and initialize the devices on a platform
+	//----------------------------------------------------------
 
 	status = clGetDeviceIDs(curPlatform, desiredDeviceType, 0, nullptr, &numDevices);
 	checkStatus("clGetDeviceIDs-0", status, true);
@@ -188,92 +138,108 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 
 	status = clGetDeviceIDs(curPlatform, desiredDeviceType, numDevices, devices, nullptr);
 	checkStatus("clGetDeviceIDs-1", status, true);
-	int devIndex = 0;
-	if (numDevices > 1)
+	// Find a device that supports double precision arithmetic
+	int* possibleDevs = new int[numDevices];
+	int nPossibleDevs = 0;
+	std::cout << "\nLooking for a device that supports double precision...\n";
+	for (int idx=0 ; idx<numDevices ; idx++)
 	{
-		size_t nameLength;
-		for (int idx=0 ; idx<numDevices ; idx++)
-		{
-			clGetDeviceInfo(devices[idx], CL_DEVICE_NAME, 0, nullptr, &nameLength);
-			char* name = new char[nameLength+1];
-			clGetDeviceInfo(devices[idx], CL_DEVICE_NAME, nameLength+1, name, nullptr);
-			// You can also query lots of other things about the device capability,
-			// for example, CL_DEVICE_EXTENSIONS to see if "cl_khr_fp64" is included.
-			// (See also the first line of daxpy.cl.)
-			std::cout << "Device " << idx << ": " << name << '\n';
-			delete [] name;
-		}
-		devIndex = -1;
-		while ((devIndex < 0) || (devIndex >= numDevices))
-		{
-			std::cout << "Which device do you want to use? ";
-			std::cin >> devIndex;
-		}
+		size_t extLength;
+		clGetDeviceInfo(devices[idx], CL_DEVICE_EXTENSIONS, 0, nullptr, &extLength);
+		char* extString = new char[extLength+1];
+		clGetDeviceInfo(devices[idx], CL_DEVICE_EXTENSIONS, extLength+1, extString, nullptr);
+		const char* fp64 = strstr(extString, "cl_khr_fp64");
+		if (fp64 != nullptr) // this device supports double precision
+			possibleDevs[nPossibleDevs++] = idx;
+		delete [] extString;
 	}
-	else if (numDevices <= 0)
-		std::cout << "No devices found\n";
-	else
-		std::cout << "Only one device detected\n";
-	return devIndex;
+	if (nPossibleDevs == 0)
+	{
+		std::cerr << "\nNo device supports double precision.\n";
+		return -1;
+	}
+	size_t nameLength;
+	for (int i=0 ; i<nPossibleDevs ; i++)
+	{
+		clGetDeviceInfo(devices[possibleDevs[i]], CL_DEVICE_NAME, 0, nullptr, &nameLength);
+		char* name = new char[nameLength+1];
+		clGetDeviceInfo(devices[possibleDevs[i]], CL_DEVICE_NAME, nameLength+1, name, nullptr);
+		std::cout << "Device " << i << ": [" << name << "] supports double precision.\n";
+		delete [] name;
+	}
+	if (nPossibleDevs == 1)
+	{
+		std::cout << "\nNo other device in the requested device category supports double precision.\n"
+		          << "You may want to try the -a command line option to see if there are others.\n"
+		          << "For now, I will use the one I found.\n";
+		return possibleDevs[0];
+	}
+	int devIndex = -1;
+	while ((devIndex < 0) || (devIndex >= nPossibleDevs))
+	{
+		std::cout << "Which device do you want to use? ";
+		std::cin >> devIndex;
+	}
+	return possibleDevs[devIndex];
 }
 
-void doTheKernelLaunch(cl_device_id dev, double a, double* h_X, double* h_Y,
-	size_t arraySize, double* h_Z)
+void doTheKernelLaunch(cl_device_id dev, double* A, double* B, double* C, size_t N)
 {
-	// --------------------------------------------------
-	// Create a context for the one chosen device
-	// --------------------------------------------------
-	
+	//------------------------------------------------------------------------
+	// Create a context for some or all of the devices on the platform
+	// (Here we are including all devices.)
+	//------------------------------------------------------------------------
+
 	cl_int status;
 	cl_context context = clCreateContext(nullptr, 1, &dev, nullptr, nullptr, &status);
 	checkStatus("clCreateContext", status, true);
 
-	// ------------------------------------------------------------
+	//-------------------------------------------------------------
 	// Create a command queue for one device in the context
 	// (There is one queue per device per context.)
-	// ------------------------------------------------------------
+	//-------------------------------------------------------------
 
 	cl_command_queue cmdQueue = clCreateCommandQueue(context, dev, 0, &status);
 	checkStatus("clCreateCommandQueue", status, true);
 
-	// ---------------------------------------------------------
+	//----------------------------------------------------------
 	// Create device buffers associated with the context
-	// ---------------------------------------------------------
+	//----------------------------------------------------------
 
-	size_t datasize = arraySize * sizeof(double);
+	size_t datasize = N * N * sizeof(double);
 
-	cl_mem bufferX = clCreateBuffer( // Input array on the device
+	cl_mem d_A = clCreateBuffer( // Input array on the device
 		context, CL_MEM_READ_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-X", status, true);
+	checkStatus("clCreateBuffer-A", status, true);
 
-	cl_mem bufferY = clCreateBuffer( // Input array on the device
+	cl_mem d_B = clCreateBuffer( // Input array on the device
 		context, CL_MEM_READ_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-Y", status, true);
+	checkStatus("clCreateBuffer-B", status, true);
 
-	cl_mem bufferZ = clCreateBuffer( // Output array on the device
+	cl_mem d_C = clCreateBuffer( // Output array on the device
 		context, CL_MEM_WRITE_ONLY, datasize, nullptr, &status);
-	checkStatus("clCreateBuffer-Z", status, true);
+	checkStatus("clCreateBuffer-C", status, true);
 
-	// ------------------------------------------------------
-	// Use the command queue to encode requests to write host
-	// data to the device buffers
-	// ------------------------------------------------------
-
-	status = clEnqueueWriteBuffer(cmdQueue, 
-		bufferX, CL_FALSE, 0, datasize,                         
-		h_X, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-X", status, true);
+	//-----------------------------------------------------
+	// Use the command queue to encode requests to
+	//         write host data to the device buffers
+	//----------------------------------------------------- 
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		bufferY, CL_FALSE, 0, datasize,                                  
-		h_Y, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-Y", status, true);
+		d_A, CL_FALSE, 0, datasize,                         
+		A, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-A", status, true);
 
-	// ----------------------------------------------------
+	status = clEnqueueWriteBuffer(cmdQueue, 
+		d_B, CL_FALSE, 0, datasize,                                  
+		B, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-B", status, true);
+
+	//-----------------------------------------------------
 	// Create, compile, and link the program
-	// ----------------------------------------------------
+	//----------------------------------------------------- 
 
-	const char* programSource[] = { readSource("daxpy.cl") };
+	const char* programSource[] = { readSource("project3.cl") };
 	cl_program program = clCreateProgramWithSource(context, 
 		1, programSource, nullptr, &status);
 	checkStatus("clCreateProgramWithSource", status, true);
@@ -283,71 +249,70 @@ void doTheKernelLaunch(cl_device_id dev, double a, double* h_X, double* h_Y,
 		showProgramBuildLog(program, dev);
 	checkStatus("clBuildProgram", status, true);
 
-	// ---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 	// Create a kernel using a "__kernel" function in the ".cl" file
-	// ---------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
-	cl_kernel kernel = clCreateKernel(program, "daxpy", &status);
+	cl_kernel kernel = clCreateKernel(program, "project3", &status);
 
-	lookAtDeviceCharacteristics(dev); // Just FYI - has no bearing on this program
-	lookAtKernelCharacteristics(kernel, dev); // Just FYI - has no bearing on this program
-
-	// ----------------------------------------------------
+	//-----------------------------------------------------
 	// Set the kernel arguments
-	// ----------------------------------------------------
+	//----------------------------------------------------- 
 
-	status = clSetKernelArg(kernel, 0, sizeof(double), &a);
-	checkStatus("clSetKernelArg-0", status, true);
-	status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufferX);
-	checkStatus("clSetKernelArg-1", status, true);
-	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &bufferY);
-	checkStatus("clSetKernelArg-2", status, true);
-	status = clSetKernelArg(kernel, 3, sizeof(int), &arraySize);
-	checkStatus("clSetKernelArg-3", status, true);
-	status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &bufferZ);
-	checkStatus("clSetKernelArg-4", status, true);
+	status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_A);
+	checkStatus("clSetKernelArg-A", status, true);
+	status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_B);
+	checkStatus("clSetKernelArg-B", status, true);
+	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_C);
+	checkStatus("clSetKernelArg-C", status, true);
+	status = clSetKernelArg(kernel, 3, sizeof(int), &N);
+	checkStatus("clSetKernelArg-N", status, true);
 
-	// ------------------------------------------------------
+	//-----------------------------------------------------
 	// Configure the work-item structure
-	// These are arrays of length n where n=dimension of the
-	// computational grid. (n <= 3) Here we are preparing a
-	// 1-dimensional computational grid (i.e., n=1)
-	// ------------------------------------------------------
+	//----------------------------------------------------- 
 
-	size_t globalWorkSize[] = { arraySize };
-	size_t* globalWorkOffset = nullptr; // ==> offset=0 in all dims
-	size_t* localWorkSize = nullptr; // ==> OpenCL runtime will pick sizes
+	size_t localWorkSize[] = { 16, 16 };
+	size_t globalWorkSize[2];
+	// Global work size needs to be at least NxN, but it must
+	// also be a multiple of local size in each dimension:
+	for (int d=0 ; d<2 ; d++)
+	{
+		globalWorkSize[d] = N;
+		if (globalWorkSize[d]%localWorkSize[d] != 0)
+			globalWorkSize[d] = ((N / localWorkSize[d]) + 1) * localWorkSize[d];
+	}
 
-	// ---------------------------------------------------
+	//-----------------------------------------------------
 	// Enqueue the kernel for execution
-	// ----------------------------------------------------
+	//----------------------------------------------------- 
 
 	status = clEnqueueNDRangeKernel(cmdQueue, kernel,
-		1, // dimension of kernel
-		globalWorkOffset, globalWorkSize,
+		2, // number dimensions in grid
+		nullptr, globalWorkSize, // globalOffset, globalSize
 		localWorkSize,
-		0, nullptr, nullptr); // event information, if desired
+		0, nullptr, nullptr); // event information, if needed
 	checkStatus("clEnqueueNDRangeKernel", status, true);
 
-	// ----------------------------------------------------
+	//-----------------------------------------------------
 	// Read the output buffer back to the host
-	// ----------------------------------------------------
+	//----------------------------------------------------- 
 
 	clEnqueueReadBuffer(cmdQueue, 
-		bufferZ, CL_TRUE, 0, datasize, 
-		h_Z, 0, nullptr, nullptr);
+		d_C, CL_TRUE, 0, datasize, 
+		C, 0, nullptr, nullptr);
 
-	// ----------------------------------------------------
+	//-----------------------------------------------------
 	// Release OpenCL resources
-	// ----------------------------------------------------
+	//----------------------------------------------------- 
 
 	// Free OpenCL resources
 	clReleaseKernel(kernel);
 	clReleaseProgram(program);
 	clReleaseCommandQueue(cmdQueue);
-	clReleaseMemObject(bufferX);
-	clReleaseMemObject(bufferY);
-	clReleaseMemObject(bufferZ);
+	clReleaseMemObject(d_A);
+	clReleaseMemObject(d_B);
+	clReleaseMemObject(d_C);
 	clReleaseContext(context);
 
 	// Free host resources
@@ -355,62 +320,70 @@ void doTheKernelLaunch(cl_device_id dev, double a, double* h_X, double* h_Y,
 	delete [] devices;
 }
 
-double* do_daxpy(cl_device_id curDevice, size_t arraySize)
+double* do_project3(cl_device_id dev, size_t N)
 {
-	double a = 2.0;
-	double* X = new double[arraySize];
-	double* Y = new double[arraySize];
-	double* Z = new double[arraySize];
-	for (int i=0 ; i<arraySize ; i++)
-	{
-		X[i] = 1000.0;
-		Y[i] =   10.0;
-		Z[i] = -999.99;
-	}
-	doTheKernelLaunch(curDevice, a, X, Y, arraySize, Z);
-	for (int i=0 ; i<arraySize ; i++)
-		std::cout << Z[i] << " = " << a << " * " << X[i] << "  +  " << Y[i] << '\n';
+	double* X = new double[N*N];
+	double* Y = new double[N*N];
+	double* Z = new double[N*N];
+	for (int row=0 ; row<N ; row++)
+		for (int col=0 ; col<N ; col++)
+		{
+			// make X be 2*I
+			X[row*N + col] = (row == col) ? 2.0 : 0.0;
+			Y[row*N + col] = 17.5;
+		}
+	doTheKernelLaunch(dev, X, Y, Z, N);
+
 	delete [] X;
 	delete [] Y;
 	return Z;
 }
 
+void print(std::string label, double* M, size_t N)
+{
+	std::cout << label << ":\n";
+	for (int row=0 ; row<N ; row++)
+	{
+		for (int col=0 ; col<N ; col++)
+		{
+			std::cout << M[row*N + col] << " ";
+		}
+		std::cout << '\n';
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	cl_device_type devType = CL_DEVICE_TYPE_DEFAULT;
-	if (argc > 1)
+	size_t N = 20;
+	bool doPrint = true;
+
+	for (int i=1 ; i<argc ; i++)
 	{
-		for (int i=1 ; i<argc ; i++)
-		{
-			if (strcmp("-debug", argv[i]) == 0)
-				debug = true;
-			else if (argv[i][0] == '-')
-			{
-				switch (argv[i][1])
-				{
-					case 'a':
-						devType = CL_DEVICE_TYPE_ALL;
-						break;
-					case 'c':
-						devType = CL_DEVICE_TYPE_CPU;
-						break;
-					case 'g':
-						devType = CL_DEVICE_TYPE_GPU;
-						break;
-				}
-			}
-		}
+		if (strcmp("-debug", argv[i]) == 0)
+			debug = true;
+		else if (strcmp(argv[i], "-a") == 0)
+			devType = CL_DEVICE_TYPE_ALL;
+		else if (strcmp(argv[i], "-c") == 0)
+			devType = CL_DEVICE_TYPE_CPU;
+		else if (strcmp(argv[i], "-g") == 0)
+			devType = CL_DEVICE_TYPE_GPU;
+		else if (strcmp(argv[i], "-n") == 0)
+			N = atoi(argv[++i]);
+		else if (strcmp(argv[i], "-noprint") == 0)
+			doPrint = false;
 	}
-	int deviceIndex = typicalOpenCLProlog(devType);
-	if (deviceIndex < 0)
-		return 0;
-			
-	double* Z = do_daxpy(devices[deviceIndex], 20);
-	// ...
-	delete [] Z;
 
-	std::cout << "failing here\n";
+	int devIndex = typicalOpenCLProlog(devType);
+	if (devIndex >= 0)
+	{
+		double* C = do_project3(devices[devIndex], N);
+		if (doPrint)
+			print("The product is", C, N);
+		delete [] C;
+	}
 
+	///////////////////////////////////////////////
 	if (argc < 7)
 		std::cerr << "Usage: " << argv[0] << " numRows numCols R G B outputImageFile\n";
 	else
