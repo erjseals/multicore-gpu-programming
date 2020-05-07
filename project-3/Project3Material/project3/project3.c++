@@ -469,7 +469,7 @@ int main(int argc, char* argv[])
 
 	cl_device_type devType = CL_DEVICE_TYPE_DEFAULT;
 	size_t N = 20;
-	bool doPrint = false;
+	bool doPrint = true;
 
 	for (int i=1 ; i<argc ; i++)
 	{
