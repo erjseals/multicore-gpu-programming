@@ -361,9 +361,9 @@ int main(int argc, char* argv[])
 	int nRows, nCols, MaxIterations, MaxLengthSquared;
 	double realMin, realMax, imagMin, imagMax;
 	double JReal, JImag;
-	double COLOR_1 = {0.0, 0.0, 0.0};
-	double COLOR_2 = {0.0, 0.0, 0.0};
-	double COLOR_3 = {0.0, 0.0, 0.0};
+	double COLOR_1[3] = {0.0, 0.0, 0.0};
+	double COLOR_2[3] = {0.0, 0.0, 0.0};
+	double COLOR_3[3] = {0.0, 0.0, 0.0};
 
 	//**********************************************
 	//Read the file
