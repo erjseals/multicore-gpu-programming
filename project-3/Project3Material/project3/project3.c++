@@ -388,85 +388,89 @@ int main(int argc, char* argv[])
 
 	//line 2
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream2(line);
 
-	lineStream >> value;
+	lineStream2 >> value;
 	MaxIterations = value;
 
 	//line 3
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream3(line);
 
-	lineStream >> value;
+
+	lineStream3 >> value;
 	MaxLengthSquared = value;
 
 	//line 4
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream4(line);
 
-	lineStream >> data;
+
+	lineStream4 >> data;
 	realMin = data;
 
-	lineStream >> data;
+	lineStream4 >> data;
 	realMax = data;
 
 	//line 5
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream5(line);
 
-	lineStream >> data;
+
+	lineStream5 >> data;
 	imagMin = data;
 
-	lineStream >> data;
+	lineStream5 >> data;
 	imagMax = data;
 
 	//line 6
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream6(line);
 
-	lineStream >> data;
+	lineStream6 >> data;
 	JReal = data;
 
-	lineStream >> data;
+	lineStream6 >> data;
 	JImag = data;
 
 	//line 7
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream7(line);
 
-	lineStream >> data;
+
+	lineStream7 >> data;
 	COLOR_1[0] = data;
 
-	lineStream >> data;
+	lineStream7 >> data;
 	COLOR_1[1] = data;
 
-	lineStream >> data;
+	lineStream7 >> data;
 	COLOR_1[2] = data;
 
 	//line 8
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream8(line);
 
-	lineStream >> data;
+	lineStream8 >> data;
 	COLOR_2[0] = data;
 
-	lineStream >> data;
+	lineStream8 >> data;
 	COLOR_2[1] = data;
 
-	lineStream >> data;
+	lineStream8 >> data;
 	COLOR_2[2] = data;
 
 	//line 9
 	std::getline(inFile, line);
-	lineStream(line);
+	std::stringstream lineStream9(line);
 
-	lineStream >> data;
+	lineStream9 >> data;
 	COLOR_3[0] = data;
 
-	lineStream >> data;
+	lineStream9 >> data;
 	COLOR_3[1] = data;
 
-	lineStream >> data;
+	lineStream9 >> data;
 	COLOR_3[2] = data;
 
 	//*************************
