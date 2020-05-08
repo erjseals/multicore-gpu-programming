@@ -23,34 +23,39 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 	double colorRet[3];
 	double f;
 
+	double XReal;
+	double XImag;
+
+	int i = 0;
+
 	if ((row < nRows) && (col < nCols))
 	{
-		for(int i = 0 ; i < MaxIterations ; i++) {
-			double XReal = (RReal*RReal - RImag*RImag) + SReal; 
-			double XImag = 2*RReal*RImag + SImag;
+		// for(i = 0 ; i < MaxIterations ; i++) {
+		// 	XReal = (RReal*RReal - RImag*RImag) + SReal; 
+		// 	XImag = 2*RReal*RImag + SImag;
 
-			if( (XReal*XReal + XImag*XImag) > MaxLengthSquared && !maxReached){
-				maxReached = true;
-				actualNumberIterations = i + 1;
-			}
-			RReal = XReal;
-			RImag = XImag;
-		}
-		if(!maxReached) {
-			colorRet[0] = COLOR_1[0];
-			colorRet[1] = COLOR_1[1];
-			colorRet[2] = COLOR_1[2];
-		}
-		else {
-		 	f = ((double)actualNumberIterations)/((double)MaxIterations);
-			colorRet[0] = (1.0 - f)*COLOR_2[0] + f*COLOR_3[0];
-			colorRet[1] = (1.0 - f)*COLOR_2[1] + f*COLOR_3[1];
-			colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
-		}
+		// 	if( (XReal*XReal + XImag*XImag) > MaxLengthSquared && !maxReached){
+		// 		maxReached = true;
+		// 		actualNumberIterations = i;
+		// 	}
+		// 	RReal = XReal;
+		// 	RImag = XImag;
+		// }
+		// if(!maxReached) {
+		// 	colorRet[0] = COLOR_1[0];
+		// 	colorRet[1] = COLOR_1[1];
+		// 	colorRet[2] = COLOR_1[2];
+		// }
+		// else {
+		//  	f = ((double)actualNumberIterations)/((double)MaxIterations);
+		// 	colorRet[0] = (1.0 - f)*COLOR_2[0] + f*COLOR_3[0];
+		// 	colorRet[1] = (1.0 - f)*COLOR_2[1] + f*COLOR_3[1];
+		// 	colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
+		// }
 
 
 		ret[(row*nCols + col) * 3]     = row*nCols + col;
-		ret[(row*nCols + col) * 3 + 1] = RReal;
-		ret[(row*nCols + col) * 3 + 2] = f;
+		ret[(row*nCols + col) * 3 + 1] = (RReal*RReal - RImag*RImag) + SReal; 
+		ret[(row*nCols + col) * 3 + 2] = 2*RReal*RImag + SImag;
 	}
 }
