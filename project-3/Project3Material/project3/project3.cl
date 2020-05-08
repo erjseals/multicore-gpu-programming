@@ -1,21 +1,16 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __kernel
-void project3(__global double* ret, int nRows, int nCols, __global int * intValues, __global double * doubleValues, __global double * colors)
+void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
+					double imagMin, double imagMax, double jReal, double jImag, __global double * COLORS)
 {
 	// Get the work-item's unique ID
 	int col = get_global_id(0);
 	int row = get_global_id(1);
 
-	int MaxIterations 	 = intValues[0];
-	int MaxLengthSquared = intValues[1];
-	double realMin = doubleValues[0];
-	double realMax = doubleValues[1];
-	double imagMin = doubleValues[2];
-	double imagMax = doubleValues[3];
-	double COLOR_1[3] = { colors[0], colors[1], colors[2]};
-	double COLOR_2[3] = { colors[3], colors[4], colors[5]};
-	double COLOR_3[3] = { colors[6], colors[7], colors[8]};
+	double COLOR_1[3] = { COLORS[0], COLORS[1], COLORS[2]};
+	double COLOR_2[3] = { COLORS[3], COLORS[4], COLORS[5]};
+	double COLOR_3[3] = { COLORS[6], COLORS[7], COLORS[8]};
 
 	double RReal = realMin + (col/(nCols-1))*(realMax - realMin);
 	double RImag = imagMin + (row/(nRows-1))*(imagMax - imagMin);
@@ -52,8 +47,8 @@ void project3(__global double* ret, int nRows, int nCols, __global int * intValu
 			colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
 		}
 
-		ret[(row*nCols + col)]     = colorRet[0]*100 + colorRet[1]*10 + colorRet[2];
-		// ret[(row*nCols + col) * 3 + 1] = colorRet[1];
-		// ret[(row*nCols + col) * 3 + 2] = colorRet[2];
+		ret[(row*nCols + col) * 3]     = colorRet[0];
+		ret[(row*nCols + col) * 3 + 1] = colorRet[1];
+		ret[(row*nCols + col) * 3 + 2] = colorRet[2];
 	}
 }
