@@ -12,8 +12,8 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 	double COLOR_2[3] = { COLORS[3], COLORS[4], COLORS[5]};
 	double COLOR_3[3] = { COLORS[6], COLORS[7], COLORS[8]};
 
-	double RReal = realMin + (col/(nCols-1))*(realMax - realMin);
-	double RImag = imagMin + (row/(nRows-1))*(imagMax - imagMin);
+	double RReal = realMin + (((double)col)/((double)nCols-1))*(realMax - realMin);
+	double RImag = imagMin + ((double)row/((double)nRows-1))*(imagMax - imagMin);
 
 	double SReal = RReal;
 	double SImag = RImag;
