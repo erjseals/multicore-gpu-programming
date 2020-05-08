@@ -352,13 +352,9 @@ double* do_project3(cl_device_id dev, int nRows, int nCols, int MaxIterations, i
 void print(std::string label, double* M, int nRows, int nCols)
 {
 	std::cout << label << ":\n";
-	for (int row=0 ; row<nRows ; row++)
+	for (int i = 0 ; i < 3 * nRows * nCols ; i++)
 	{
-		for (int col=0 ; col<nCols ; col++)
-		{
-			std::cout << M[row*nCols + col] << " ";
-		}
-		std::cout << '\n';
+		std::cout << M[i] << " ";
 	}
 }
 
