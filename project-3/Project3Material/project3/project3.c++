@@ -371,6 +371,7 @@ int main(int argc, char* argv[])
 	int intValues[2];
 	double doubleValues[6];
 	double colors[9];
+	int nRows, nCols;
 
 	//**********************************************
 	//Read the file
@@ -520,7 +521,7 @@ int main(int argc, char* argv[])
 
 	///////////////////////////////////////////////
 	
-	double RGB[3] = { COLOR_1[0], COLOR_1[1], COLOR_1[2] };
+	double RGB[3] = { 0, 1, 0 };
 	int numChannels = 3; // R, G, B
 	ImageWriter* iw = ImageWriter::create(argv[3], nCols, nRows, numChannels);
 	if (iw == nullptr)
