@@ -186,8 +186,7 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 	return possibleDevs[devIndex];
 }
 
-void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared,
-	double realMin, double realMax, double imagMin, double imagMax, double * COLOR_1, double * COLOR_2, double * COLOR_3)
+void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int * intValues, double * doubleValues, double * colors)
 {
 	//------------------------------------------------------------------------
 	// Create a context for some or all of the devices on the platform
@@ -216,17 +215,17 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 		context, CL_MEM_WRITE_ONLY, datasize, nullptr, &status);
 	checkStatus("clCreateBuffer-ret", status, true);
 
-	cl_mem d_COLOR_1 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
-	checkStatus("clCreateBuffer-COLOR_1", status, true);
+	cl_mem d_intValues = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 2*sizeof(int), nullptr, &status);
+	checkStatus("clCreateBuffer-intValues", status, true);
 
-	cl_mem d_COLOR_2 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
-	checkStatus("clCreateBuffer-COLOR_2", status, true);
+	cl_mem d_doubleValues = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 6*sizeof(double), nullptr, &status);
+	checkStatus("clCreateBuffer-doubleValues", status, true);
 
-	cl_mem d_COLOR_3 = clCreateBuffer(
-		context, CL_MEM_READ_ONLY, 3*sizeof(double), nullptr, &status);
-	checkStatus("clCreateBuffer-COLOR_3", status, true);
+	cl_mem d_colors = clCreateBuffer(
+		context, CL_MEM_READ_ONLY, 9*sizeof(double), nullptr, &status);
+	checkStatus("clCreateBuffer-colors", status, true);
 
 	//-----------------------------------------------------
 	// Use the command queue to encode requests to
@@ -234,19 +233,19 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	//----------------------------------------------------- 
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_1, CL_FALSE, 0, 3*sizeof(double),                         
-		COLOR_1, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-COLOR_1", status, true);
+		d_intValues, CL_FALSE, 0, 2*sizeof(int),                         
+		intValues, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-intValues", status, true);
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_2, CL_FALSE, 0, 3*sizeof(double),                         
-		COLOR_2, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
+		d_doubleValues, CL_FALSE, 0, 6*sizeof(double),                         
+		doubleValues, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-doubleValues", status, true);
 
 	status = clEnqueueWriteBuffer(cmdQueue, 
-		d_COLOR_2, CL_FALSE, 0, 3*sizeof(double),                         
-		COLOR_2, 0, nullptr, nullptr);
-	checkStatus("clEnqueueWriteBuffer-COLOR_2", status, true);
+		d_colors, CL_FALSE, 0, 9*sizeof(double),                         
+		colors, 0, nullptr, nullptr);
+	checkStatus("clEnqueueWriteBuffer-colors", status, true);
 
 	//-----------------------------------------------------
 	// Create, compile, and link the program
@@ -279,26 +278,12 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	status = clSetKernelArg(kernel, 2, sizeof(int), &nCols);
 	checkStatus("clSetKernelArg-nCols", status, true);
 
-	status = clSetKernelArg(kernel, 3, sizeof(int), &MaxIterations);
-	checkStatus("clSetKernelArg-MaxIterations", status, true);
-	status = clSetKernelArg(kernel, 4, sizeof(int), &MaxLengthSquared);
-	checkStatus("clSetKernelArg-MaxLengthSquared", status, true);
-
-	status = clSetKernelArg(kernel, 5, sizeof(double), &realMin);
-	checkStatus("clSetKernelArg-realMin", status, true);
-	status = clSetKernelArg(kernel, 6, sizeof(double), &realMax);
-	checkStatus("clSetKernelArg-realMax", status, true);
-	status = clSetKernelArg(kernel, 7, sizeof(double), &imagMin);
-	checkStatus("clSetKernelArg-imagMin", status, true);
-	status = clSetKernelArg(kernel, 8, sizeof(double), &imagMax);
-	checkStatus("clSetKernelArg-imagMax", status, true);
-
-	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_1);
-	checkStatus("clSetKernelArg-d_COLOR_1", status, true);
-	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_2);
-	checkStatus("clSetKernelArg-d_COLOR_2", status, true);	
-	status = clSetKernelArg(kernel, 9, sizeof(cl_mem), &d_COLOR_3);
-	checkStatus("clSetKernelArg-d_COLOR_3", status, true);
+	status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &d_intValues);
+	checkStatus("clSetKernelArg-d_intValues", status, true);
+	status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &d_doubleValues);
+	checkStatus("clSetKernelArg-d_doubleValues", status, true);	
+	status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &d_colors);
+	checkStatus("clSetKernelArg-d_colors", status, true);
 
 	//-----------------------------------------------------
 	// Configure the work-item structure
@@ -347,6 +332,9 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	clReleaseProgram(program);
 	clReleaseCommandQueue(cmdQueue);
 	clReleaseMemObject(d_ret);
+	clReleaseMemObject(d_intValues);
+	clReleaseMemObject(d_doubleValues);
+	clReleaseMemObject(d_colors);
 	clReleaseContext(context);
 
 	// Free host resources
@@ -354,12 +342,10 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	delete [] devices;
 }
 
-double* do_project3(cl_device_id dev, int nRows, int nCols, int MaxIterations, int MaxLengthSquared,
-	double realMin, double realMax, double imagMin, double imagMax, double * COLOR_1, double * COLOR_2, double * COLOR_3)
+double* do_project3(cl_device_id dev, int nRows, int nCols, int * intValues, double * doubleValues, double * colors)
 {
 	double* ret = new double[nRows*nCols];
-	doTheKernelLaunch(dev, ret, nRows, nCols, MaxIterations, MaxLengthSquared, 
-								realMin, realMax, imagMin, imagMax, COLOR_1, COLOR_2, COLOR_3);
+	doTheKernelLaunch(dev, ret, nRows, nCols, intValues, doubleValues, colors);
 
 	return ret;
 }
@@ -382,9 +368,13 @@ int main(int argc, char* argv[])
 	if(argc < 4)
 		std::cerr << "Usage: " << argv[0] << " M/R params.txt imageFileOut.png\n";
 
-	int nRows, nCols, MaxIterations, MaxLengthSquared;
+	int intValues[2];
+	double doubleValues[6];
+	double colors[9];
+
+	int nRows, nCols;
 	double realMin, realMax, imagMin, imagMax;
-	double JReal, JImag;
+	double doubleValues, JReal, JImag;
 	double COLOR_1[3] = {0.0, 0.0, 0.0};
 	double COLOR_2[3] = {0.0, 0.0, 0.0};
 	double COLOR_3[3] = {0.0, 0.0, 0.0};
@@ -413,7 +403,7 @@ int main(int argc, char* argv[])
 	std::stringstream lineStream2(line);
 
 	lineStream2 >> value;
-	MaxIterations = value;
+	intValues[0] = value;
 
 	//line 3
 	std::getline(inFile, line);
@@ -421,7 +411,7 @@ int main(int argc, char* argv[])
 
 
 	lineStream3 >> value;
-	MaxLengthSquared = value;
+	intValues[1] = value;
 
 	//line 4
 	std::getline(inFile, line);
@@ -429,10 +419,10 @@ int main(int argc, char* argv[])
 
 
 	lineStream4 >> data;
-	realMin = data;
+	doubleValues[0] = data;
 
 	lineStream4 >> data;
-	realMax = data;
+	doubleValues[1] = data;
 
 	//line 5
 	std::getline(inFile, line);
@@ -440,20 +430,20 @@ int main(int argc, char* argv[])
 
 
 	lineStream5 >> data;
-	imagMin = data;
+	doubleValues[2] = data;
 
 	lineStream5 >> data;
-	imagMax = data;
+	doubleValues[3] = data;
 
 	//line 6
 	std::getline(inFile, line);
 	std::stringstream lineStream6(line);
 
 	lineStream6 >> data;
-	JReal = data;
+	doubleValues[4] = data;
 
 	lineStream6 >> data;
-	JImag = data;
+	doubleValues[5] = data;
 
 	//line 7
 	std::getline(inFile, line);
@@ -461,39 +451,39 @@ int main(int argc, char* argv[])
 
 
 	lineStream7 >> data;
-	COLOR_1[0] = data;
+	colors[0] = data;
 
 	lineStream7 >> data;
-	COLOR_1[1] = data;
+	colors[1] = data;
 
 	lineStream7 >> data;
-	COLOR_1[2] = data;
+	colors[2] = data;
 
 	//line 8
 	std::getline(inFile, line);
 	std::stringstream lineStream8(line);
 
 	lineStream8 >> data;
-	COLOR_2[0] = data;
+	colors[3] = data;
 
 	lineStream8 >> data;
-	COLOR_2[1] = data;
+	colors[4] = data;
 
 	lineStream8 >> data;
-	COLOR_2[2] = data;
+	colors[5] = data;
 
 	//line 9
 	std::getline(inFile, line);
 	std::stringstream lineStream9(line);
 
 	lineStream9 >> data;
-	COLOR_3[0] = data;
+	colors[6] = data;
 
 	lineStream9 >> data;
-	COLOR_3[1] = data;
+	colors[7] = data;
 
 	lineStream9 >> data;
-	COLOR_3[2] = data;
+	colors[8] = data;
 
 	//*************************
 	//test results
@@ -529,8 +519,7 @@ int main(int argc, char* argv[])
 	int devIndex = typicalOpenCLProlog(devType);
 	if (devIndex >= 0)
 	{
-		double* C = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, 
-								realMin, realMax, imagMin, imagMax, COLOR_1, COLOR_2, COLOR_3);
+		double* C = do_project3(devices[devIndex], nRows, nCols, intValues, doubleValues, colors);
 		if (doPrint)
 			print("The Array is", C, nRows, nCols);
 		delete [] C;
