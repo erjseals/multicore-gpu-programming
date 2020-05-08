@@ -284,7 +284,7 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	status = clSetKernelArg(kernel, 11, sizeof(cl_mem), &d_COLORS);
 	checkStatus("clSetKernelArg-d_colors", status, true);
 
-	status = clSetKernelArg(kernel, 10, sizeof(char), &MorJ);
+	status = clSetKernelArg(kernel, 12, sizeof(char), &MorJ);
 	checkStatus("clSetKernelArg-MorJ", status, true);
 
 	//-----------------------------------------------------
