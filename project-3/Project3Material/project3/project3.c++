@@ -187,7 +187,7 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 }
 
 void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
-					double imagMin, double imagMax, double jReal, double jImag, double * COLORS)
+					double imagMin, double imagMax, double jReal, double jImag, double * COLORS, char MorJ)
 {
 	//------------------------------------------------------------------------
 	// Create a context for some or all of the devices on the platform
@@ -284,6 +284,9 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	status = clSetKernelArg(kernel, 11, sizeof(cl_mem), &d_COLORS);
 	checkStatus("clSetKernelArg-d_colors", status, true);
 
+	status = clSetKernelArg(kernel, 10, sizeof(char), &MorJ);
+	checkStatus("clSetKernelArg-MorJ", status, true);
+
 	//-----------------------------------------------------
 	// Configure the work-item structure
 	//----------------------------------------------------- 
@@ -340,11 +343,11 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 }
 
 double* do_project3(cl_device_id dev, int nRows, int nCols, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
-					double imagMin, double imagMax, double jReal, double jImag, double * COLORS)
+					double imagMin, double imagMax, double jReal, double jImag, double * COLORS, char MorJ)
 {
 	//3 times for rgb
 	double* ret = new double[3*nRows*nCols];
-	doTheKernelLaunch(dev, ret, nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS);
+	doTheKernelLaunch(dev, ret, nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS, MorJ);
 
 	return ret;
 }
@@ -362,6 +365,8 @@ int main(int argc, char* argv[])
 {
 	if(argc < 4)
 		std::cerr << "Usage: " << argv[0] << " M/R params.txt imageFileOut.png\n";
+
+	char MorJ = argv[1];
 
 	int MaxIterations;
 	int MaxLengthSquared;
@@ -516,7 +521,7 @@ int main(int argc, char* argv[])
 
 	if (devIndex >= 0)
 	{
-		ret = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS);
+		ret = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS), MorJ;
 		// if (doPrint)
 		// 	print("The Array is", ret, nRows, nCols);
 	}

@@ -2,7 +2,7 @@
 
 __kernel
 void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
-					double imagMin, double imagMax, double jReal, double jImag, __global double * COLORS)
+					double imagMin, double imagMax, double jReal, double jImag, __global double * COLORS, char MorJ)
 {
 	// Get the work-item's unique ID
 	int col = get_global_id(0);
@@ -14,9 +14,17 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 
 	double RReal = realMin + (((double)col)/((double)nCols-1))*(realMax - realMin);
 	double RImag = imagMin + ((double)row/((double)nRows-1))*(imagMax - imagMin);
+	double SReal;
+	double SImag;
 
-	double SReal = RReal;
-	double SImag = RImag;
+	if(MorJ == 'M'){
+		SReal = RReal;
+		SImag = RImag;
+	}
+	else {
+		SReal = jReal;
+		SImag = jImag;
+	}
 	
 	bool maxReached = false;
 	int actualNumberIterations = 0;
