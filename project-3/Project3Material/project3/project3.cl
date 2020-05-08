@@ -52,9 +52,7 @@ void project3(__global double* ret, int nRows, int nCols, __global int * intValu
 			colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
 		}
 
-		ret[(row*nCols + col)] = row*nCols + col;
-
-		// ret[(row*nCols + col)]     = colorRet[0];
+		ret[(row*nCols + col)]     = colorRet[0]*100 + colorRet[1]*10 + colorRet[2];
 		// ret[(row*nCols + col) * 3 + 1] = colorRet[1];
 		// ret[(row*nCols + col) * 3 + 2] = colorRet[2];
 	}
