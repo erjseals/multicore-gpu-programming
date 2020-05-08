@@ -20,8 +20,8 @@ void project3(__global double* ret, int nRows, int nCols, __global int * intValu
 	double RReal = realMin + (col/(nCols-1))*(realMax - realMin);
 	double RImag = imagMin + (row/(nRows-1))*(imagMax - imagMin);
 
-	double SReal = QReal;
-	double SImag = QImag;
+	double SReal = RReal;
+	double SImag = RImag;
 	
 	bool maxReached = false;
 	int actualNumberIterations = 0;
