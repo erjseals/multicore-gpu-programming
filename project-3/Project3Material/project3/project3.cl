@@ -13,9 +13,9 @@ void project3(__global double* ret, int nRows, int nCols, __global int * intValu
 	double realMax = doubleValues[1];
 	double imagMin = doubleValues[2];
 	double imagMax = doubleValues[3];
-	double COLOR_1[3] = { colors[0], colors[1], colors[2]}
-	double COLOR_2[3] = { colors[3], colors[4], colors[5]}
-	double COLOR_3[3] = { colors[6], colors[7], colors[8]}
+	double COLOR_1[3] = { colors[0], colors[1], colors[2]};
+	double COLOR_2[3] = { colors[3], colors[4], colors[5]};
+	double COLOR_3[3] = { colors[6], colors[7], colors[8]};
 
 	double QReal = realMin + (col/(nCols-1))*(realMax - realMin);
 	double QImag = imagMin + (row/(nRows-1))*(imagMax - imagMin);
@@ -54,8 +54,8 @@ void project3(__global double* ret, int nRows, int nCols, __global int * intValu
 			colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
 		}
 
-		ret[(row*nCol + col) * 3]     = colorRet[0];
-		ret[(row*nCol + col) * 3 + 1] = colorRet[1];
-		ret[(row*nCol + col) * 3 + 2] = colorRet[2];
+		ret[(row*nCols + col) * 3]     = colorRet[0];
+		ret[(row*nCols + col) * 3 + 1] = colorRet[1];
+		ret[(row*nCols + col) * 3 + 2] = colorRet[2];
 	}
 }
