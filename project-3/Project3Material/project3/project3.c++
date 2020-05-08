@@ -512,17 +512,18 @@ int main(int argc, char* argv[])
 	}
 
 	int devIndex = typicalOpenCLProlog(devType);
+	double * ret;
+
 	if (devIndex >= 0)
 	{
-		double* C = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS);
-		if (doPrint)
-			print("The Array is", C, nRows, nCols);
-		delete [] C;
+		ret = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS);
+		// if (doPrint)
+		// 	print("The Array is", ret, nRows, nCols);
 	}
 
 	///////////////////////////////////////////////
 	
-	double RGB[3] = { 0, 1, 0 };
+	// double RGB[3] = { 0, 1, 0 };
 	int numChannels = 3; // R, G, B
 	ImageWriter* iw = ImageWriter::create(argv[3], nCols, nRows, numChannels);
 	if (iw == nullptr)
@@ -540,7 +541,7 @@ int main(int argc, char* argv[])
 				int loc = r*nCols*numChannels + c*numChannels + chan;
 				// In your GPU code, you will either have the kernel return a buffer of unsigned char,
 				// or return a float or double buffer and do the following:
-				unsigned char pixelVal = static_cast<unsigned char>(RGB[chan]*255.0 + 0.5);
+				unsigned char pixelVal = static_cast<unsigned char>(ret[loc]*255.0 + 0.5);
 				// In any event, place the unsigned char into the buffer to be written to the output
 				// image file.  It MUST be a one-byte 0..255 value.
 				image[loc] = pixelVal;
@@ -552,6 +553,7 @@ int main(int argc, char* argv[])
 	iw->closeImageFile();
 	delete iw;
 	delete [] image;
+	delete [] ret;
 
 	return 0;
 }
