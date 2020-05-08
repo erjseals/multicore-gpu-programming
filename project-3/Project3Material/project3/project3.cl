@@ -30,19 +30,19 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 
 	if ((row < nRows) && (col < nCols))
 	{
-		for(i = 0 ; i < MaxIterations ; i++) {
-			XReal = (RReal*RReal - RImag*RImag) + SReal; 
-			XImag = 2*RReal*RImag + SImag;
+		// for(i = 0 ; i < MaxIterations ; i++) {
+		// 	XReal = (RReal*RReal - RImag*RImag) + SReal; 
+		// 	XImag = 2*RReal*RImag + SImag;
 
-			if( (XReal*XReal + XImag*XImag) > MaxLengthSquared && !maxReached){
-				maxReached = true;
-				actualNumberIterations = i;
-			}
-			else{
-				RReal = XReal;
-				RImag = XImag;
-			}
-		}
+		// 	if( (XReal*XReal + XImag*XImag) > MaxLengthSquared && !maxReached){
+		// 		maxReached = true;
+		// 		actualNumberIterations = i;
+		// 	}
+		// 	else{
+		// 		RReal = XReal;
+		// 		RImag = XImag;
+		// 	}
+		// }
 		// if(!maxReached) {
 		// 	colorRet[0] = COLOR_1[0];
 		// 	colorRet[1] = COLOR_1[1];
@@ -55,6 +55,10 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 		// 	colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
 		// }
 
+		XReal = (RReal*RReal - RImag*RImag) + SReal; 
+		XImag = 2*RReal*RImag + SImag;
+		RReal = XReal;
+		RImag = XImag;
 
 		ret[(row*nCols + col) * 3]     = row*nCols + col;
 		ret[(row*nCols + col) * 3 + 1] = RReal;
