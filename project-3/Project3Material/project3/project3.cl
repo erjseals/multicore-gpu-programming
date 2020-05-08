@@ -44,7 +44,7 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 		// 	colorRet[2] = COLOR_1[2];
 		// }
 		// else {
-		 	double f = actualNumberIterations/MaxIterations;
+		 	double f = ((double)actualNumberIterations)/((double)MaxIterations);
 		// 	colorRet[0] = (1.0 - f)*COLOR_2[0] + f*COLOR_3[0];
 		// 	colorRet[1] = (1.0 - f)*COLOR_2[1] + f*COLOR_3[1];
 		// 	colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
