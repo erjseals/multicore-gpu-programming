@@ -366,7 +366,8 @@ int main(int argc, char* argv[])
 	if(argc < 4)
 		std::cerr << "Usage: " << argv[0] << " M/R params.txt imageFileOut.png\n";
 
-	char MorJ = argv[1];
+	char MorJ = argv[1][0];
+
 
 	int MaxIterations;
 	int MaxLengthSquared;
@@ -521,7 +522,7 @@ int main(int argc, char* argv[])
 
 	if (devIndex >= 0)
 	{
-		ret = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS), MorJ;
+		ret = do_project3(devices[devIndex], nRows, nCols, MaxIterations, MaxLengthSquared, realMin, realMax, imagMin, imagMax, jReal, jImag, COLORS, MorJ);
 		// if (doPrint)
 		// 	print("The Array is", ret, nRows, nCols);
 	}
