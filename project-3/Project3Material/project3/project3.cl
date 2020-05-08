@@ -21,6 +21,7 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 	bool maxReached = false;
 	int actualNumberIterations = 0;
 	double colorRet[3];
+	double f;
 
 	if ((row < nRows) && (col < nCols))
 	{
