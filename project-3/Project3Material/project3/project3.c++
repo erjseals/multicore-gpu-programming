@@ -209,7 +209,7 @@ void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int 
 	// Create device buffers associated with the context
 	//----------------------------------------------------------
 
-	size_t datasize = nRows * nCols * sizeof(double);
+	size_t datasize = 3 * nRows * nCols * sizeof(double);
 
 	cl_mem d_ret = clCreateBuffer( // Output array on the device
 		context, CL_MEM_WRITE_ONLY, datasize, nullptr, &status);
