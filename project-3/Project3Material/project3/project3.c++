@@ -372,13 +372,6 @@ int main(int argc, char* argv[])
 	double doubleValues[6];
 	double colors[9];
 
-	int nRows, nCols;
-	double realMin, realMax, imagMin, imagMax;
-	double doubleValues, JReal, JImag;
-	double COLOR_1[3] = {0.0, 0.0, 0.0};
-	double COLOR_2[3] = {0.0, 0.0, 0.0};
-	double COLOR_3[3] = {0.0, 0.0, 0.0};
-
 	//**********************************************
 	//Read the file
 	std::ifstream inFile(argv[2]);
