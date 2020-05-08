@@ -186,7 +186,7 @@ int typicalOpenCLProlog(cl_device_type desiredDeviceType)
 	return possibleDevs[devIndex];
 }
 
-void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
+void doTheKernelLaunch(cl_device_id dev, double* ret, int nRows, int nCols, int MaxIterations, int MaxLengthSquared, double realMin, double realMax, 
 					double imagMin, double imagMax, double jReal, double jImag, double * COLORS)
 {
 	//------------------------------------------------------------------------
