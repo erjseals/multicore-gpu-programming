@@ -25,9 +25,6 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 
 	if ((row < nRows) && (col < nCols))
 	{
-
-
-
 		for(int i = 0 ; i < MaxIterations ; i++) {
 			double XReal = (RReal*RReal - RImag*RImag) + SReal; 
 			double XImag = 2*RReal*RImag + SImag;
@@ -39,13 +36,13 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 			RReal = XReal;
 			RImag = XImag;
 		}
-		if(maxReached) {
+		if(!maxReached) {
 			colorRet[0] = COLOR_1[0];
 			colorRet[1] = COLOR_1[1];
 			colorRet[2] = COLOR_1[2];
 		}
 		else {
-		 	double f = ((double)actualNumberIterations)/((double)MaxIterations);
+		 	f = ((double)actualNumberIterations)/((double)MaxIterations);
 			colorRet[0] = (1.0 - f)*COLOR_2[0] + f*COLOR_3[0];
 			colorRet[1] = (1.0 - f)*COLOR_2[1] + f*COLOR_3[1];
 			colorRet[2] = (1.0 - f)*COLOR_2[2] + f*COLOR_3[2];
