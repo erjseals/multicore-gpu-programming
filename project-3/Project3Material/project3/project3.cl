@@ -53,7 +53,7 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 		double f = (double)((row/nRows) + (col/nCols));
 
 		ret[(row*nCols + col) * 3]     = row*nCols + col;
-		ret[(row*nCols + col) * 3 + 1] = f * COLOR_3[1];
-		ret[(row*nCols + col) * 3 + 2] = row*nCols + col;
+		ret[(row*nCols + col) * 3 + 1] = RReal;
+		ret[(row*nCols + col) * 3 + 2] = RImag;
 	}
 }
