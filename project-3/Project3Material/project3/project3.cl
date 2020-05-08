@@ -30,7 +30,7 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 
 	if ((row < nRows) && (col < nCols))
 	{
-		for(i = 0 ; i < 5 ; i++) {
+		for(i = 0 ; i < MaxIterations ; i++) {
 			XReal = (RReal*RReal - RImag*RImag) + SReal; 
 			XImag = 2*RReal*RImag + SImag;
 
