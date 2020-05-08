@@ -34,7 +34,11 @@ void project3(__global double* ret, int nRows, int nCols, int MaxIterations, int
 			XReal = (RReal*RReal - RImag*RImag) + SReal; 
 			XImag = 2*RReal*RImag + SImag;
 
-			if( (XReal*XReal + XImag*XImag) > MaxLengthSquared) break;
+			double squared = XReal * XReal + XImag * XImag;
+			if(square > MaxLengthSquared && !maxReached) {
+				maxReached = true;
+				actualNumberIterations = i;
+			}
 			
 			RReal = XReal;
 			RImag = XImag;
